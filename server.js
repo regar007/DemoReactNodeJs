@@ -4,7 +4,7 @@ var express = require('express'),
 jade = require('jade'),
 path = require('path'),
 app = express(),
-port = 007,
+port = 4444,
 bodyParser = require('body-parser');
 
 // Make sure to include the JSX transpiler
