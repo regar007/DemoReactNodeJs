@@ -1,0 +1,27 @@
+
+html
+	head
+		title A Simple Node, Jade Driven Site!
+		link(rel = 'stylesheet', href = '/stylesheets/style.css')
+	body
+		header
+			if userType == 'new'
+				h1 Welcome Dude #{loginData.name}!
+				h2 I am Ashok Regar. And this is my very first application made using node, jade, express framework.
+				h2 Thankyou for Signing up!
+			else
+				h1 Welcome back fella #{loginData.name}!
+				h2 I am Ashok Regar. And this is my very first application made using node, jade, express framework.
+				h2 Thankyou for visiting again!
+			div
+				button(onclick="signout()") Sign Out
+
+
+		footer
+			p Running on node with Express, Jade and Stylus!
+script.
+	console.log(!{JSON.stringify(loginData)})
+script.
+	function signout() {
+		window.location.href = '/'
+	}

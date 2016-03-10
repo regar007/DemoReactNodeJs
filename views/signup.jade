@@ -1,0 +1,30 @@
+
+html
+	head
+		title A Simple Node, Jade Driven Site!
+		link(rel = 'stylesheet', href = '/stylesheets/style.css')
+	body
+		header
+			h1 A Demo of Node and Jade!
+			form(action="/signup", method="post")
+				div
+					input(type="name",placeholder="name", name = "name")
+				div
+					input(type="age",placeholder="age", name = "age")
+				div
+					input(type="username",placeholder="username", name = "username")
+				div
+					input(type="password",placeholder="password", name="password")
+				div
+					input(type="submit", value="Sign Up!")
+
+			div
+				button(onclick="signin()") Sign in
+		footer
+			p Running on node with Express, Jade and Stylus!
+script.
+	console.log(!{JSON.stringify(secret)})
+script.
+	function signin() {
+		window.location.href = '/signin'
+	}
