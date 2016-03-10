@@ -9,7 +9,6 @@ bodyParser = require('body-parser');
 app.use(bodyParser.json());  
 app.use(bodyParser.urlencoded({ extended: false }));
 var router = express.Router();
-var signup = require('./app/routes/secret.js');
 
 // Make sure to include the JSX transpiler
 require('node-jsx').install();
@@ -26,6 +25,9 @@ app.use(router);
 
 // Set up Routes for the application
 require('./app/routes/core-routes.js')(app);
+require('./app/routes/signup.js')(app);
+require('./app/routes/signin.js')(app);
+require('./app/routes/welcome.js')(app);
 //app.use('/signup', signup);
 
 // router.get('/', function(req, res){

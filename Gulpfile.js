@@ -3,7 +3,7 @@ var gulp       = require('gulp'),
 
 gulp.task('scripts', function () {
 
-    gulp.src(['app/main.js'])
+    gulp.src(['app/router/main.js'])
         .pipe(browserify({
             debug: true,
             transform: [ 'reactify' ]

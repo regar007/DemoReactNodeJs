@@ -1,17 +1,30 @@
-module.exports = function(app){
+var loginData = {name : '', age : '', secret : {username : '', password : ''}};
+var mongodbjs = require('../routes/mongodb.js');
+
+var MyApp = function(app){
 
 	app.get('/signup', function(req, res){
+		console.log("in signup get : ");
 		res.render('signup');
 	});
 
 	app.post('/signup', function(req, res){
-		loginData.username = req.body.username;
-		loginData.pawd = rq.body.password;
+		var query = req.body;
+		loginData.secret.username = query.username;
+		loginData.secret.password = query.password;
+		loginData.name = query.name;
+		loginData.age = query.age;
 
-		if(loginData.username === 'Ashok' && loginData.pawd === '123')
-			res.render('signin', loginData);
+		console.log("in signup post : "+ loginData.secret.username);
+		if(loginData.secret.username !== '' && loginData.secret.password !== '' && loginData.name !== '' && loginData.age !== ''){
+			userExist = false;
+			var data = {userType : 'old', loginData : loginData};
+			mongodbjs.findRecord(loginData, res, data, 'signup');
+		}
 		else
 			res.render('signup', loginData);
 	});
 
 };
+
+module.exports = MyApp;

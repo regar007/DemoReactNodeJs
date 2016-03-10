@@ -3,22 +3,55 @@ html
 	head
 		title A Simple Node, Jade Driven Site!
 		link(rel = 'stylesheet', href = '/stylesheets/style.css')
-	body
-		header
-			if userType == 'new'
-				h1 Welcome Dude #{loginData.name}!
-				h2 I am Ashok Regar. And this is my very first application made using node, jade, express framework.
-				h2 Thankyou for Signing up!
-			else
-				h1 Welcome back fella #{loginData.name}!
-				h2 I am Ashok Regar. And this is my very first application made using node, jade, express framework.
-				h2 Thankyou for visiting again!
-			div
-				button(onclick="signout()") Sign Out
+		|<script src="jquery-1.11.1.min.js"></script>
+		|<script src="jquery.autocomplete.js"></script>
+		|<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+		link(rel="stylesheet" href="//code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css")
+		|<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+		|<script src="//code.jquery.com/ui/1.11.3/jquery-ui.js"></script>
+		| <script type='text/javascript'>
+		|		$(document).ready(function() {
+		|	
+		|	    	$(function() {	
+		|		    	 $( "#searchName" ).autocomplete({
+		|	  					 source:function(request, response){
+		|			    	       $.ajax({
+		|			  			    url : "/welcome",
+		|			  			    async: false,
+		|			  			    type: "POST",
+		|			  			    data : {value: request.term},
+		|			  			    success : function(responseText) {
+		|			  			    	alert(responseText);
+		|	  			    			response(responseText);
+		|	   				 		}
+		|		    			});
+		|		    	    }
+		|	      		});
+		|			}); 
+		|		});
+		| </script>
+	if userType
+		body
+			header
+				if userType === 'new'
+					h1 Welcome Dude #{loginData.name}!
+					h2 I am Ashok Regar. And this is my very first application made using node, jade, express framework.
+					h2 Thankyou for Signing up!
+				else
+					h1 Welcome back fella #{loginData.name}!
+					h2 I am Ashok Regar. And this is my very first application made using node, jade, express framework.
+					h2 Thankyou for visiting again!
+				div
+					button(onclick="signout()") Sign Out
+
+				div(style = "margin-top : 20px;")
+					p search for your friend here!
+					Input(type="text", id="searchName", placeholder="name", name = "name")
 
 
-		footer
-			p Running on node with Express, Jade and Stylus!
+
+			footer
+				p Running on node with Express, Jade and Stylus!
 script.
 	console.log(!{JSON.stringify(loginData)})
 script.
