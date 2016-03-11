@@ -1,26 +1,29 @@
 //lets require/import the mongodb native drivers.
 var mongodb = require('mongodb');
+var crypto = require('crypto');
 
 //We need to work with "MongoClient" interface in order to connect to a mongodb server.
 var MongoClient = mongodb.MongoClient;
 
 // Connection URL. This is where your mongodb server is running.
 var url = 'mongodb://localhost:27017/mongo_db1';
+var init = false;
+
+// if(!init){
+// 	console.log("init: "+init);
+// 	MongoClient.connect(url, function (err, db) {
+// 	  if (err) {
+// 	    console.log('Unable to connect to the mongoDB server. Error:', err);
+// 	  } else {
+// 	  	var users = db.collection('users') 
+// 	  	users.remove();
+// 	  }
+// 	});
+// 	init = !init;
+// };
 
 module.exports = {
 
-	// if(!init){
-	// 	console.log("init: "+init);
-	// 	MongoClient.connect(url, function (err, db) {
-	// 	  if (err) {
-	// 	    console.log('Unable to connect to the mongoDB server. Error:', err);
-	// 	  } else {
-	// 	  	var users = db.collection('users') 
-	// 	  	users.remove();
-	// 	  }
-	// 	});
-	// 	init = !init;
-	// }
 	updateCollection : function(loginData){
 
 		console.log("In updateCollection");
@@ -53,9 +56,19 @@ module.exports = {
 		    // Get the documents collection
 		    var collection = db.collection('users');
 
+		    var query = {};
+			if(route === 'signin')
+		    	query = {secret : {username : loginData.secret.username, password : loginData.secret.password}};
+		    else if(route === 'signup'){
+		    	var x = crypto.createHash('md5').update(loginData.name + loginData.secret.username).digest("hex");
+		    	query = {_id : x};
+		    	console.log("id: "+query._id);
+		    }
+
 		    // Insert some users
-		    console.log(loginData.secret.username);
-		    collection.find({secret : {username : loginData.secret.username, password : loginData.secret.password}}).toArray(function (err, result) {
+		    console.log("query :" , query);
+		    
+			collection.find(query).toArray(function (err, result) {
 		      if (err) {
 		        console.log(err);
 		      } else if (result.length) {
@@ -68,7 +81,9 @@ module.exports = {
 					res.render('welcome', data);
 
 		      } else {
+		      	console.log('id not found');
 		      	if(route === 'signup')
+		      		loginData._id = query._id;
 					saveMongo(loginData, res, data);
 				if(route === 'signin')
 					res.render('signin');
@@ -82,7 +97,6 @@ module.exports = {
 
 	showRecord : function(loginData, todo, res){
 	    var data = [];
-
 		// Use connect method to connect to the Server
 		MongoClient.connect(url, function (err, db) {
 		  if (err) {
@@ -119,9 +133,13 @@ module.exports = {
 		      } else {
 		        console.log('Fetched:', doc);
 	            if(doc)  
-	           		data.push(doc.name); 
-	           	else
-					res.json({ data : data});
+	           		data.push(doc.name);
+	           	else{
+//	           		data = JSON.parse(data);
+//					res.setContentType("text/json");
+//					res.setCharacterEncoding("UTF-8");	           		
+					res.json({data : data});
+	           	}
 		      }
 		    });
 		  }
@@ -139,9 +157,6 @@ var	saveMongo = function(loginData, res, data){
 
 		    // Get the documents collection
 		    var collection = db.collection('users');
-
-		    //Create some id
-		    loginData._id = loginData.name + loginData.secret.username + loginData.age;
 
 		    // Insert some users
 		    console.log(loginData);

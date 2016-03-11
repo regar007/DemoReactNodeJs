@@ -3,26 +3,36 @@ html
 	head
 		title A Simple Node, Jade Driven Site!
 		link(rel = 'stylesheet', href = '/stylesheets/style.css')
-		|<script src="jquery-1.11.1.min.js"></script>
-		|<script src="jquery.autocomplete.js"></script>
 		|<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 		link(rel="stylesheet" href="//code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css")
 		|<script src="//code.jquery.com/jquery-1.10.2.js"></script>
 		|<script src="//code.jquery.com/ui/1.11.3/jquery-ui.js"></script>
-		| <script type='text/javascript'>
-		|		$(document).ready(function() {
-		|	
+		|<script type='text/javascript'>
+		|		$(document).ready(function() {	
 		|	    	$(function() {	
 		|		    	 $( "#searchName" ).autocomplete({
+		|						select:function(event,ui){
+		|						     console.log(ui.item.value);
+		|				    	       $.ajax({
+		|				  			    url : '/twitter',
+		|				  			    async: false,
+		|			  				    type: "GET",
+		|								data : {query : ui.item.value},
+		|			  				    success : function(responseText) {
+		|	  			    			//	response(responseText);
+		|									alert(responseText);
+		|	   					 		}
+		|		    			});
+		|						//alert("out from select");
+		|						},	
 		|	  					 source:function(request, response){
 		|			    	       $.ajax({
 		|			  			    url : "/welcome",
 		|			  			    async: false,
 		|			  			    type: "POST",
-		|			  			    data : {value: request.term},
+		|			  			    data : {value: request.term, todo : "searchName"},
 		|			  			    success : function(responseText) {
-		|			  			    	alert(responseText);
-		|	  			    			response(responseText);
+		|	  			    			response(responseText.data);
 		|	   				 		}
 		|		    			});
 		|		    	    }
@@ -47,9 +57,20 @@ html
 				div(style = "margin-top : 20px;")
 					p search for your friend here!
 					Input(type="text", id="searchName", placeholder="name", name = "name")
-
-
-
+				
+				div.dropdown
+					ul.dropdown-menu(role="menu")
+						
+						li(role="presentation")
+							a(href="#", role="menuitem", tabindex="-1") Regular link
+						li.disabled(role="presentation")
+							a(href="#", role="menuitem", tabindex="-1") Disabled link
+				div.dropdown
+					ul.dropdown-menu(role="menu")
+						li.dropdown-header(role="presentation") Header
+						li(role="presentation")
+							a(href="#", role="menuitem", tabindex="-1") Regular link
+						li.divider(role="presentation")						
 			footer
 				p Running on node with Express, Jade and Stylus!
 script.

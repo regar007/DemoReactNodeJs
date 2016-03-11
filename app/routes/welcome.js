@@ -10,11 +10,9 @@ var MyApp = function(app){
 	app.post('/welcome', function(req, res){
 		console.log("in welcome post!");
 		var data = req.body.value;
+		var todo = req.body.todo;
 		console.log(data);
-		var data = mongodbjs.showRecord(data, 'searchName', res);
-
-		//response.setContentType("text/json");
-		//response.setCharacterEncoding("UTF-8");
+		var data = mongodbjs.showRecord(data, todo, res);
 	});
 };
 
