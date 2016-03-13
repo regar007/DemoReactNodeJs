@@ -109,7 +109,7 @@ module.exports = {
 		    var collection = db.collection('users');
 
 		    //We have a cursor now with our find criteria
-		    var regex = '/*'+loginData+'/*';
+		    var regex = "^" +loginData+'/*';
 		    console.log(regex+ " : "+todo);
 		    var cursor = {};
 		    if(todo === 'searchName'){

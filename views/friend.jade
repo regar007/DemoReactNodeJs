@@ -1,0 +1,24 @@
+
+html
+	head
+		title A Simple Node, Jade Driven Site!
+		link(rel = 'stylesheet', href = '/stylesheets/style.css')
+		body
+			header
+				h1 Welcome to #{tweets}'s page!
+				div
+					button(onclick="signout()") Sign Out
+				div(style="margin-top : 50px;")
+					button(onclick="goBack()") Go Back
+			footer
+				p Running on node with Express, Jade and Stylus!
+script.
+	console.log(!{JSON.stringify(loginData)})
+script.
+	function signout() {
+		window.location.href = '/'
+	}
+script.
+	function goBack() {
+		window.location.href = '/welcome'
+	}

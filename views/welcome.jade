@@ -3,43 +3,37 @@ html
 	head
 		title A Simple Node, Jade Driven Site!
 		link(rel = 'stylesheet', href = '/stylesheets/style.css')
-		|<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+		script(src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js")
 		link(rel="stylesheet" href="//code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css")
-		|<script src="//code.jquery.com/jquery-1.10.2.js"></script>
-		|<script src="//code.jquery.com/ui/1.11.3/jquery-ui.js"></script>
-		|<script type='text/javascript'>
-		|		$(document).ready(function() {	
-		|	    	$(function() {	
-		|		    	 $( "#searchName" ).autocomplete({
-		|						select:function(event,ui){
-		|						     console.log(ui.item.value);
-		|				    	       $.ajax({
-		|				  			    url : '/twitter',
-		|				  			    async: false,
-		|			  				    type: "GET",
-		|								data : {query : ui.item.value},
-		|			  				    success : function(responseText) {
-		|	  			    			//	response(responseText);
-		|									alert(responseText);
-		|	   					 		}
-		|		    			});
-		|						//alert("out from select");
-		|						},	
-		|	  					 source:function(request, response){
-		|			    	       $.ajax({
-		|			  			    url : "/welcome",
-		|			  			    async: false,
-		|			  			    type: "POST",
-		|			  			    data : {value: request.term, todo : "searchName"},
-		|			  			    success : function(responseText) {
-		|	  			    			response(responseText.data);
-		|	   				 		}
-		|		    			});
-		|		    	    }
-		|	      		});
-		|			}); 
-		|		});
-		| </script>
+		script(src="//code.jquery.com/jquery-1.10.2.js")
+		script(src="//code.jquery.com/ui/1.11.3/jquery-ui.js")
+		script(type='text/javascript').
+				$(document).ready(function(){
+					$(function() {
+						 $( "#searchName" ).autocomplete({
+								focus: function( event, ui ) {
+										var x = $( "#searchName" ).val( ui.item.value);
+										console.log(x['0'].value);
+										return false;
+								},
+								select:function(event,ui){
+										console.log(ui.item.value);
+										window.location.href = '/twitter?name='+ui.item.value;
+								},
+								source:function(request, response){
+									$.ajax({
+									url : "/welcome",
+									async: false,
+									type: "POST",
+									data : {value: request.term, todo : "searchName"},
+									success : function(responseText) {
+										response(responseText.data);
+									}
+								});
+							}
+						});
+					}); 
+				});
 	if userType
 		body
 			header
@@ -70,7 +64,7 @@ html
 						li.dropdown-header(role="presentation") Header
 						li(role="presentation")
 							a(href="#", role="menuitem", tabindex="-1") Regular link
-						li.divider(role="presentation")						
+						li.divider(role="presentation")                     
 			footer
 				p Running on node with Express, Jade and Stylus!
 script.

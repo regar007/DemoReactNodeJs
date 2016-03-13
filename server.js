@@ -28,6 +28,7 @@ require('./app/routes/core-routes.js')(app);
 require('./app/routes/signup.js')(app);
 require('./app/routes/signin.js')(app);
 require('./app/routes/welcome.js')(app);
+require('./app/routes/twitter.js')(app);
 //app.use('/signup', signup);
 
 // router.get('/', function(req, res){

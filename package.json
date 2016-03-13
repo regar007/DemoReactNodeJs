@@ -12,7 +12,6 @@
     "jade": "*",
     "mongodb" : "*",
     "crypto" : "*",
-    "fs" : "*",
     "classnames": "^2.1.5",
     "director": "^1.2.0",
     "react": "^0.13.3",
@@ -20,7 +19,8 @@
     "todomvc-common": "^1.0.1",
     "cheerio": "^0.19.0",
     "url-parse": "^1.0.5",
-    "request": "^2.65.0"   
+    "request": "^2.65.0",
+    "twitter" : "*"   
   },
   "devDependencies": {
     "browserify": "~3.20.0",
