@@ -14,6 +14,15 @@ var MyApp = function(app) {
 */
 
 	app.get('/', function(req, res){
+		//req.sessionStror.destroy();
+		// if(req.session)
+		// 	req.session.cookie.expires = new Date(Date.now());
+	
+		// req.sessionStore.destroy();
+		req.session.destroy();
+		//res.clearCookie('connect.sid', { path: '/' }); 
+		//res.clearCookie('mycookie', { path: '/' }); 
+//		console.log(req);
 		console.log("in main page");
     	res.render('main');
 	});

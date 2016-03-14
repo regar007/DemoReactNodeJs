@@ -1,5 +1,7 @@
-var loginData = {name : '', age : '', secret : {username : '', password : ''}};
+var loginData = {name : '', age : '',twitterName: '', secret : {username : '', password : ''}};
 var mongodbjs = require('../routes/mongodb.js');
+var crypto = require('crypto');
+
 
 var MyApp = function(app){
 
@@ -12,18 +14,15 @@ var MyApp = function(app){
 		var query = req.body;
 		var todo = 'signup';
 		loginData.secret.username = query.username;
-		loginData.secret.password = query.password;
+		loginData.secret.password = crypto.createHash('md5').update(query.password).digest("hex");
 		loginData.name = query.name;
 		loginData.age = query.age;
+		loginData.twitterName = query.twitterName;
 
 		console.log("in signup post : "+ loginData.secret.username);
-		if(loginData.secret.username != '' && loginData.secret.password != '' && loginData.name != '' && loginData.age != ''){
-			userExist = false;
-			var data = {userType : 'old', loginData : loginData};
-			mongodbjs.findRecord(loginData, res, data, todo);
-		}
-		else
-			res.render(todo, loginData);
+		userExist = false;
+		var data = {userType : 'old', user : { name : ''}};
+		mongodbjs.findRecord(loginData, res, req, data, todo);
 	});
 
 };

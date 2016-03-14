@@ -1,22 +1,34 @@
 var mongodbjs = require('../routes/mongodb.js');
+var url = require('url');
 var loginData = {name : '', age : '', secret : {username : '', password : ''}};
 
 var MyApp = function(app){
 
 	app.get('/signin', function(req, res){
+		console.log(req);
+		var data = {exist : false};
+		var url_parts = url.parse(req.url, true);
+		var exist = (url_parts.query.exist) ? true : false;
+		console.log(exist);
+		if(req.session.userName || exist)
+			data.exist = true;
+		//	req.session.destroy();
 		console.log("in sign get");
-		res.render('signin', loginData);
+		res.render('signin', data);
 	});
-
 	app.post('/signin', function(req, res){
 		var query = req.body;
+		var loginData = { secret : {username : '', password : ''}};
 		loginData.secret.username = query.username;
 		loginData.secret.password = query.password;
-		console.log("in signin post"+ query.username +" : "+ query.password);
-		var data = {userType : 'old', loginData : loginData};
-		mongodbjs.findRecord(loginData,res,data, 'signin');
-		console.log("in sign get");
+		console.log("in signin post ="+ query.username +" : "+ query.password);
+
+//		passport.authenticate('local', { failureRedirect: '/signin' });
+
+		var data = {userType : 'old', user : {name : ''}};
+		mongodbjs.findRecord(loginData, res, req, data, 'signin');
 	});
+
 };
 
 module.exports = MyApp;

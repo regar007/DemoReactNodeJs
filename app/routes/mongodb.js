@@ -22,6 +22,7 @@ var init = false;
 // 	init = !init;
 // };
 
+
 module.exports = {
 
 	updateCollection : function(loginData){
@@ -44,7 +45,7 @@ module.exports = {
 		});
 	},
 
-	findRecord : function(loginData, res, data, route){
+	findRecord : function(loginData, res, req, data, todo){
 		// Use connect method to connect to the Server
 		MongoClient.connect(url, function (err, db) {
 		  if (err) {
@@ -56,11 +57,12 @@ module.exports = {
 		    // Get the documents collection
 		    var collection = db.collection('users');
 
+		    //set query	
 		    var query = {};
-			if(route === 'signin')
-		    	query = {secret : {username : loginData.secret.username, password : loginData.secret.password}};
-		    else if(route === 'signup'){
-		    	var x = crypto.createHash('md5').update(loginData.name + loginData.secret.username).digest("hex");
+			if(todo === 'signin')
+		    	query = {secret : {username : loginData.secret.username, password : crypto.createHash('md5').update(loginData.secret.password).digest("hex")}};
+		    else if(todo === 'signup'){
+		    	var x = crypto.createHash('md5').update(loginData.secret.username).digest("hex");
 		    	query = {_id : x};
 		    	console.log("id: "+query._id);
 		    }
@@ -72,21 +74,31 @@ module.exports = {
 		      if (err) {
 		        console.log(err);
 		      } else if (result.length) {
-		        console.log('Found:', result[0].name);
-		        data.loginData.name = result[0].name;
-		        
-		        if(route === 'signup')
-					res.render('signin', data);
-				if(route === 'signin')
+		        console.log('Found:', result[0].secret.username);
+		        data.user.name = result[0].name;
+
+		        if(todo === 'signup')
+					res.redirect('/signin?exist='+true);
+				if(todo === 'signin'){
+					
+			        req.session.userName = result[0].secret.username+ " ("+result[0].name+")";
+			        console.log(req);
+			        console.log("username :"+ req.session.userName);
 					res.render('welcome', data);
+				}
 
 		      } else {
 		      	console.log('id not found');
-		      	if(route === 'signup')
+		      	if(todo === 'signup')
 		      		loginData._id = query._id;
+					// req.session.regenerate(function(err){
+					//    // will have a new session here
+					//  });
+			        req.session.userName = loginData.secret.username+ " ("+loginData.name+")";
+			        console.log(req);
 					saveMongo(loginData, res, data);
-				if(route === 'signin')
-					res.render('signin');
+				if(todo === 'signin')
+					res.redirect('/signin');
 		      }
 		      //Close connection
 		      db.close();
@@ -133,7 +145,7 @@ module.exports = {
 		      } else {
 		        console.log('Fetched:', doc);
 	            if(doc)  
-	           		data.push(doc.name);
+	           		data.push(doc.name +" ("+doc.twitterName+")");
 	           	else{
 //	           		data = JSON.parse(data);
 //					res.setContentType("text/json");
@@ -146,6 +158,76 @@ module.exports = {
 		});	
 	}
 };
+
+exports.findById = function(id, cb) {
+  process.nextTick(function() {
+	MongoClient.connect(url, function (err, db) {
+	  if (err) {
+	    console.log('Unable to connect to the mongoDB server. Error:', err);
+	  } else {
+	    //HURRAY!! We are connected. :)
+	    console.log('Connection established to: findUserById', url);
+
+	    // Get the documents collection
+	    var collection = db.collection('users');
+
+	    //set query	
+	    var query = {_id : id};
+
+	    // Insert some users
+	    console.log("query :" , query);
+	    
+		collection.find(query).toArray(function (err, result) {
+	      if (err) {
+	        console.log(err);
+	      } else if (result.length) {
+	      	cb(null, result[0]);
+	      } else {
+	      	console.log('id not found');
+		      cb(new Error('User ' + id + ' does not exist'));	      
+		  }
+	      //Close connection
+	      db.close();
+	    });
+	  }
+	});
+  });
+}
+
+exports.findByUsername = function(username, cb) {
+  process.nextTick(function() {
+	MongoClient.connect(url, function (err, db) {
+	  if (err) {
+	    console.log('Unable to connect to the mongoDB server. Error:', err);
+	  } else {
+	    //HURRAY!! We are connected. :)
+	    console.log('Connection established to: findByUsername', url);
+
+	    // Get the documents collection
+	    var collection = db.collection('users');
+
+	    //set query	
+	    var query = {secret : {username : username}};
+
+	    // Insert some users
+	    console.log("query :" , query);
+	    
+		collection.find(query).toArray(function (err, result) {
+	      if (err) {
+	        console.log(err);
+	      } else if (result.length) {
+	      	return cb(null, result[0]);
+	      } else {
+	      	console.log(username +' not found');
+		  }
+	      //Close connection
+	      db.close();
+		  return cb(null, null);
+	    });
+	  }
+	});
+  });
+}
 
 var	saveMongo = function(loginData, res, data){
 		MongoClient.connect(url, function (err, db) {
@@ -167,7 +249,8 @@ var	saveMongo = function(loginData, res, data){
 		      } else {
 		        console.log('Inserted %d documents into the "users" collection. The documents inserted with "_id" are:', result.length + result);
 		      	data.userType = 'new';
-		      	res.render('welcome', data);
+		      	data.user.name = loginData.name;
+		      	res.redirect('/welcome');
 
 		      }
 		      //Close connection

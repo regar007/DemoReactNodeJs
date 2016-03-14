@@ -35,27 +35,27 @@ console.log(client);
 // client.stream('statuses/filter', {track: 'javascript'}, function(stream) {
 //   stream.on('data', function(tweet) {
 //     console.log(tweet.text);
-//   });
- 
-//   stream.on('error', function(error) {
-//     throw error;sudo 
-//   });
+//   });	
+// 	setTimeout(function(){
+// 		stream.destroy();
+// 		process.exit(0);
+// 	}, 5000);
 // });
 
 var MyApp = function(app){
 	app.get('/twitter', function(req, res){
 		var url_parts = url.parse(req.url, true);
 		var query = url_parts.query;
+		var regExp = /\(([^)]+)\)/;
+		var matches = regExp.exec(query.name);
 		console.log("in twitter get!");
-		console.log("name : "+query.name);
-		var _tweets = {};
-		client.get('favorites/list', function(error, tweets, response){
+		console.log("Twitter search : "+ matches[1]);
+		client.get('search/tweets',{count: 5, q : matches[1]}, function(error, tweets, response){
 			if(error) throw error;
 			console.log(tweets);  // The favorites. 
 		 // console.log(response);  // Raw response object. 
-		  _tweets = tweets;
+		res.render('friend',{tweets : tweets});
 		});
-		res.render('friend',{tweets : _tweets});
 	});
 
 	app.post('/twitter', function(req, res){

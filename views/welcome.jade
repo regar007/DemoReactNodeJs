@@ -34,19 +34,18 @@ html
 						});
 					}); 
 				});
-	if userType
 		body
 			header
 				if userType === 'new'
-					h1 Welcome Dude #{loginData.name}!
+					h1 Welcome Dude #{user.name}!
 					h2 I am Ashok Regar. And this is my very first application made using node, jade, express framework.
 					h2 Thankyou for Signing up!
 				else
-					h1 Welcome back fella #{loginData.name}!
+					h1 Welcome back fella #{user.name}!
 					h2 I am Ashok Regar. And this is my very first application made using node, jade, express framework.
 					h2 Thankyou for visiting again!
 				div
-					button(onclick="signout()") Sign Out
+					button(onclick="signout()", id = "sinout") Sign Out
 
 				div(style = "margin-top : 20px;")
 					p search for your friend here!
@@ -73,3 +72,5 @@ script.
 	function signout() {
 		window.location.href = '/'
 	}
+script.
+	fi

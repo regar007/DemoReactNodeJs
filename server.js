@@ -6,9 +6,47 @@ path = require('path'),
 app = express(),
 port = 4444,
 bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
+//var passport = require('passport'),
+//Strategy = require('passport-local').Strategy,
+var expressSession = require('express-session');
+//var mongodbjs = require('./app/routes/mongodb.js');
+
+//configure strategy
+// passport.use(new Strategy(
+//   function(username, password, cb) {
+//   	console.log('in strategy :'+username +" : "+passport);
+//     mongodbjs.findByUsername({ username: username }, function (err, user) {
+//       if (err) { return cb(err); }
+//       if (!user) { return cb(null, false); }
+//       if (!user.verifyPassword(password)) { return cb(null, false); }
+//       return cb(null, user);
+//     });
+//   }
+// ));
+
+// passport.serializeUser(function(user, cb) {
+//   cb(null, user.id);
+// });
+
+// passport.deserializeUser(function(id, cb) {
+//   mongodbjs.findById(id, function (err, user) {
+//     cb(err, user);
+//   });
+// });
+
+ app.use(cookieParser());
+// app.use(require('express-session')({ secret: 'keyboard-cat', resave: false, saveUninitialized: false }));
+// app.use(passport.initialize());
+// app.use(passport.session());
+
+app.use(expressSession({secret : 'ada231sdkwkqw124kcmkcms1', cookieName : 'mycookie'}));
 app.use(bodyParser.json());  
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
+
 var router = express.Router();
+
+
 
 // Make sure to include the JSX transpiler
 require('node-jsx').install();
@@ -30,6 +68,7 @@ require('./app/routes/signin.js')(app);
 require('./app/routes/welcome.js')(app);
 require('./app/routes/twitter.js')(app);
 //app.use('/signup', signup);
+
 
 // router.get('/', function(req, res){
 // 	res.render('contact');

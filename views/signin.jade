@@ -1,5 +1,5 @@
 body
-	if !userType
+	if !exist
 		h1 You're not authorised to view next page
 	h2 Please login or sign up!
 
@@ -11,7 +11,7 @@ body
 	div
 		button(onclick="signup()") Sign Up
 
-	if userType && userType === 'old'
+	if exist
 		h1 Seriously! How can you forget me.
 		h2 Try login in! 
 		
