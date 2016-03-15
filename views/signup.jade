@@ -1,41 +1,73 @@
-
-html
+doctype html
+html(lang="en")
 	head
-		title A Simple Node, Jade Driven Site!
-		link(rel = 'stylesheet', href = '/stylesheets/style.css')
+		title= pageTitle
+		link(rel = 'stylesheet',type="text/css", href = 'http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css')
+		script(src="libs/jquery.min.js")
+		link(rel="stylesheet" href="libs/jquery-ui.css")
+		script(src="libs/jquery-1.10.2.js")
+		script(src="libs/jquery-ui.js")
+		script(src='libs/bootstrap.min.js')
+
 	body
-		header
-			h1 A Demo of Node and Jade!
-			form(action="/signup", onsubmit=" return validate()", method="post")
-				div
-					input(type="name", id = "name", placeholder="Name", name = "name")
-				div
-					input(type="twitterName", id="twitterName", placeholder="Twitter Name with @(Optional)", name = "twitterName")
-				div
-					input(type="number",id="age", placeholder="Age", name = "age")
-				div
-					input(type="username",id="username", placeholder="Username", name = "username")
-				div
-					input(type="password",id= "password", placeholder="Password", name="password")
-				div
-					input(type="submit", value="Sign Up!")
+		nav.navbar.navbar-inverse
+			div.container-fluid
+				div.navbar-header
+					button.navbar-toggle(type="button" data-toggle="collapse" data-target="#myNavbar")
+						span.icon-bar
+						span.icon-bar
+						span.icon-bar
+					a.navbar-brand(href="/") OfflineSearch
+				div.collapse.navbar-collapse#myNavbar
+					ul.nav.navbar-nav
+						li.active
+							a(href = "/") Home
+					ul.nav.navbar-nav.navbar-right
+						li
+							a(href = "/signup")
+								span.glyphicon.glyphicon-user  Sign Up
+						li
+							a(href = "/signin")
+								span.glyphicon.glyphicon-log-in  Sign In
+	header.container
+		h1 These credential are necessary to get to started with us!
+		h1.divider
+		form.form-horizontal(action="/signup", onsubmit=" return validate()", method="post")
+			div.form-group
+				label.control-label.col-sm-2(for="name") Name:
+				div.col-sm-10
+					input.form-control(type="name", id = "name", placeholder="Name", name = "name")
+			div.form-group
+				label.control-label.col-sm-2(for="twitterName") Twitter Name:
+				div.col-sm-10
+					input.form-control(type="twitterName", id="twitterName", placeholder="Twitter Name with @(Optional)", name = "twitterName")
+			div.form-group
+				label.control-label.col-sm-2(for="age") Age:
+				div.col-sm-10
+					input.form-control(type="number",id="age", placeholder="Age", name = "age")
+			div.form-group
+				label.control-label.col-sm-2(for="username") Username:
+				div.col-sm-10
+					input.form-control(type="username",id="username", placeholder="Username", name = "username")
+			div.form-group
+				label.control-label.col-sm-2(for="password") Password:
+				div.col-sm-10
+					input.form-control(type="password",id= "password", placeholder="Password", name="password")
+			div.form-group
+				div.col-sm-offset-2.col-sm-10
+					input.btn.btn-default(type="submit", value="Submit")
 
-				p(id="invalidText")
+			p#invalidText
 
-			div
-				button(onclick="signin()") Sign in
-		footer
-			p Running on node with Express, Jade and Stylus!
+
+	footer.container.divider
+		p Running on node with Express, Jade and Stylus!
 script.
 	console.log(!{JSON.stringify(secret)})
 script.
-	function signin() {
-		window.location.href = '/signin'
-	}
-script.
 	function validate() {
 		var invalid = false;
-		var str = 'Please provide -: ';
+		var str = 'Please provide these field :{ ';
 		var input = document.getElementById("name").value;
 		if(input == ""){
 			str += 'Name ';
@@ -59,7 +91,7 @@ script.
 			invalid = true;
 		}
 		if(invalid){
-			str += ':-!And yeah, its safe with us.';
+			str += '} And yeah, you are safe with us.';
 			document.getElementById("invalidText").innerHTML = str;
 			return false;
 		}else{

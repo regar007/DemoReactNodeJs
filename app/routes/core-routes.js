@@ -19,7 +19,7 @@ var MyApp = function(app) {
 		// 	req.session.cookie.expires = new Date(Date.now());
 	
 		// req.sessionStore.destroy();
-		req.session.destroy();
+		//req.session.destroy();
 		//res.clearCookie('connect.sid', { path: '/' }); 
 		//res.clearCookie('mycookie', { path: '/' }); 
 //		console.log(req);

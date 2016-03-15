@@ -25,27 +25,42 @@ var init = false;
 
 module.exports = {
 
-	updateCollection : function(loginData){
-
-		console.log("In updateCollection");
-		// Get the documents collection
-		var collection = db.collection('users');
-
-		// Insert some users
-		collection.update({name: loginData.name}, {$set: {enabled: false}}, function (err, numUpdated) {
+	updateCollection : function(userdata, res, req, todo){
+		MongoClient.connect(url, function (err, db) {
 		  if (err) {
-		    console.log(err);
-		  } else if (numUpdated) {
-		    console.log('Updated Successfully %d document(s).', numUpdated);
+		    console.log('Unable to connect to the mongoDB server. Error:', err);
 		  } else {
-		    console.log('No document found with defined "find" criteria!');
+			console.log('Connection established to: updateCollection', url);
+			// Get the documents collection
+			var collection = db.collection('users');
+			//get the username from session
+			var regExp = / *\([^)]*\) */g;
+			var username = req.session.userName.replace(regExp, '');
+			var isUpdated= false;
+			console.log(username +" : "+ userdata);
+			// Insert some users
+			collection.update({'secret.username' : username}, {$set: {hashTag : userdata}}, function (err, numUpdated) {
+			  if (err) {
+			    console.log(err);
+			  } else if (numUpdated) {
+			  	isUpdated = true;
+			    console.log('Updated Successfully %d document(s).', numUpdated);
+			  } else {
+			    console.log('No document found with defined "find" criteria!');
+			  }
+
+			  if(isUpdated)
+			  	res.json({result : 'success'});
+			  else
+			  	res.json({result : 'failed'});
+			  //Close connection
+			  db.close();			 
+			});
 		  }
-		  //Close connection
-		  db.close();
 		});
 	},
 
-	findRecord : function(loginData, res, req, data, todo){
+	findRecord : function(loginData, res, req, todo){
 		// Use connect method to connect to the Server
 		MongoClient.connect(url, function (err, db) {
 		  if (err) {
@@ -58,6 +73,7 @@ module.exports = {
 		    var collection = db.collection('users');
 
 		    //set query	
+    		var data = {userType : 'old', hashTag : [], user : {name : ''}};
 		    var query = {};
 			if(todo === 'signin')
 		    	query = {secret : {username : loginData.secret.username, password : crypto.createHash('md5').update(loginData.secret.password).digest("hex")}};
@@ -65,6 +81,11 @@ module.exports = {
 		    	var x = crypto.createHash('md5').update(loginData.secret.username).digest("hex");
 		    	query = {_id : x};
 		    	console.log("id: "+query._id);
+		    }
+		    else if(todo === 'getHashTags'){
+		    	var regExp = / *\([^)]*\) */g;
+				var username = req.session.userName.replace(regExp, '');
+		    	query = {_id : crypto.createHash('md5').update(username).digest("hex")};
 		    }
 
 		    // Insert some users
@@ -79,24 +100,29 @@ module.exports = {
 
 		        if(todo === 'signup')
 					res.redirect('/signin?exist='+true);
-				if(todo === 'signin'){
-					
-			        req.session.userName = result[0].secret.username+ " ("+result[0].name+")";
+				else if(todo === 'signin'){
+			        req.session.userName = result[0].secret.username+ "("+result[0].name+")";
 			        console.log(req);
 			        console.log("username :"+ req.session.userName);
 					res.render('welcome', data);
 				}
+				else if(todo === 'getHashTags'){
+					data.hashTag = result[0].hashTag;
+					console.log("data : ", data);
+					res.render('configure', data);
+				}
 
 		      } else {
 		      	console.log('id not found');
-		      	if(todo === 'signup')
+		      	if(todo === 'signup'){
 		      		loginData._id = query._id;
 					// req.session.regenerate(function(err){
 					//    // will have a new session here
 					//  });
-			        req.session.userName = loginData.secret.username+ " ("+loginData.name+")";
+			        req.session.userName = loginData.secret.username+ "("+loginData.name+")";
 			        console.log(req);
 					saveMongo(loginData, res, data);
+				}
 				if(todo === 'signin')
 					res.redirect('/signin');
 		      }
@@ -145,7 +171,7 @@ module.exports = {
 		      } else {
 		        console.log('Fetched:', doc);
 	            if(doc)  
-	           		data.push(doc.name +" ("+doc.twitterName+")");
+	           		data.push(doc.name +"("+doc.twitterName+")");
 	           	else{
 //	           		data = JSON.parse(data);
 //					res.setContentType("text/json");
@@ -250,7 +276,7 @@ var	saveMongo = function(loginData, res, data){
 		        console.log('Inserted %d documents into the "users" collection. The documents inserted with "_id" are:', result.length + result);
 		      	data.userType = 'new';
 		      	data.user.name = loginData.name;
-		      	res.redirect('/welcome');
+		      	res.redirect('/welcome?userType=new');
 
 		      }
 		      //Close connection

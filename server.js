@@ -67,6 +67,7 @@ require('./app/routes/signup.js')(app);
 require('./app/routes/signin.js')(app);
 require('./app/routes/welcome.js')(app);
 require('./app/routes/twitter.js')(app);
+require('./app/routes/configure.js')(app);
 //app.use('/signup', signup);
 
 

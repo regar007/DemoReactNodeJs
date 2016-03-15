@@ -1,24 +1,56 @@
-body
-	if !exist
-		h1 You're not authorised to view next page
-	h2 Please login or sign up!
+doctype html
+html(lang="en")
+	head
+		title= pageTitle
+		link(rel = 'stylesheet',type="text/css", href = 'http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css')
+		script(src="libs/jquery.min.js")
+		link(rel="stylesheet" href="libs/jquery-ui.css")
+		script(src="libs/jquery-1.10.2.js")
+		script(src="libs/jquery-ui.js")
+		script(src='libs/bootstrap.min.js')
 
-	form(action="/signin", method="post")
-		input(type="username",placeholder="username", name="username")
-		input(type="password",placeholder="password", name="password")
-		input(type="submit", value="SignIn")
+	body
+		nav.navbar.navbar-inverse
+			div.container-fluid
+				div.navbar-header
+					button.navbar-toggle(type="button" data-toggle="collapse" data-target="#myNavbar")
+						span.icon-bar
+						span.icon-bar
+						span.icon-bar
+					a.navbar-brand(href="/") OfflineSearch
+				div.collapse.navbar-collapse#myNavbar
+					ul.nav.navbar-nav
+						li.active
+							a(href = "/") Home
+					ul.nav.navbar-nav.navbar-right
+						li
+							a(href = "/signup")
+								span.glyphicon.glyphicon-user  Sign Up
+						li
+							a(href = "/signin")
+								span.glyphicon.glyphicon-log-in  Sign In
+		div.container
+			if !exist
+				h1 You're not authorised to view next page!
+			h2 Please login or sign up!
 
-	div
-		button(onclick="signup()") Sign Up
+			form.form-horizontal(action="/signin", method="post")
+				div.form-group
+					label.control-label.col-sm-2(for="username") Username:
+					div.col-sm-10
+						input.form-control(type="username",id="username", placeholder="Username", name = "username")
+				div.form-group
+					label.control-label.col-sm-2(for="password") Password:
+					div.col-sm-10
+						input.form-control(type="password",id= "password", placeholder="Password", name="password")
+				div.form-group
+					div.col-sm-offset-2.col-sm-10
+						input.btn.btn-default(type="submit", value="Submit")
 
-	if exist
-		h1 Seriously! How can you forget me.
-		h2 Try login in! 
-		
+			if exist
+				h1 Seriously! How can you forget me.
+				h2 Try login in! 
+			
 
 script.
 	console.log(!{JSON.stringify(secret)})
-script.
-	function signup() {
-		window.location.href = '/signup'
-	}

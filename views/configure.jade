@@ -1,0 +1,125 @@
+
+html
+	head
+		title A Simple Node, Jade Driven Site!
+		link(rel = 'stylesheet',type="text/css", href = 'http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css')
+		script(src="libs/jquery.min.js")
+		link(rel="stylesheet" href="libs/jquery-ui.css")
+		script(src="libs/jquery-1.10.2.js")
+		script(src="libs/jquery-ui.js")
+		script(src='libs/bootstrap.min.js')
+		script(type='text/javascript').
+				$(document).ready(function(){
+					$(function() {
+						$( "#item" ).tooltip({
+								show: {
+								effect: "slideDown",
+								delay: 500
+							}
+						});	
+						var listItems = [];
+						$("#topic").keyup(function(event){
+							if(event.keyCode == 13 && $("#topic").val() != ''){
+								listItems= [];
+								var text = $("#topic").val();
+								$("#topic").val('');
+								console.log(text);
+								$("#menu-outer div ul").append('<li id = "item" title="Click to REMOVE">#'+text+'</li>');
+
+								$("#horizontal-list li").each(function(){
+									if($(this).children().size() > 0){return true;}
+									listItems.push($(this).text());
+									console.log(listItems);
+								});
+								$.ajax({
+									url : "/configure",
+									async: false,
+									type: "POST",
+									data : {value: listItems, todo : "userList"},
+									success : function(responseText) {
+										console.log(responseText.result);
+									}
+								});
+							}
+						});
+						$("#horizontal-list").on("click" , "#item", function(e){
+							var val = $(this).text();
+							for(var i =0, l = listItems.length; i < l; i++){
+								if(listItems[i] == val){
+									listItems.splice(i, 1);
+									break;
+								}
+							}
+							$(this).remove();
+							console.log(listItems);
+							$.ajax({
+								url : "/configure",
+								async: false,
+								type: "POST",
+								data : {value: listItems, todo : "userList"},
+								success : function(responseText) {
+									console.log(responseText.result);
+								}
+							});
+						});							
+					}); 
+				});
+
+		body
+			nav.navbar.navbar-inverse
+				div.container-fluid
+					div.navbar-header
+						button.navbar-toggle(type="button" data-toggle="collapse" data-target="#myNavbar")
+							span.icon-bar
+							span.icon-bar
+							span.icon-bar
+						a.navbar-brand(href="/") OfflineSearch
+					div.collapse.navbar-collapse#myNavbar
+						ul.nav.navbar-nav
+							li.active
+								a(href = "/") Home
+						ul.nav.navbar-nav.navbar-right
+							li
+								a(href = "/signup")
+									span.glyphicon.glyphicon-user  Sign Up
+							li
+								a(href = "/signin")
+									span.glyphicon.glyphicon-log-in  Sign In
+			header.container
+				h1 Hi #{user.name}! 
+				h2 Welcome to the configuration page. Here you create your own list of interests and get updates from time to time on your mobile! 
+				div
+					button(onclick="signout()", id = "sinout") Sign Out
+
+				div(style = "margin-top : 20px;")
+					p Type the topic one by one and enter to create the list
+					Input(type="text", id="topic", placeholder="Topic", name = "topic" )
+				div(id="menu-outer")
+					div( class = "table")
+						ul( id="horizontal-list")
+							if hashTag && hashTag.length
+								each item in hashTag
+									li#item #{item}
+
+				div.dropdown
+					button.btn.btn-default.dropdown-toggle(data-toggle="dropdown") SMS Service
+						span.caret
+					ul.dropdown-menu(role="menu" aria-labelledby="menu1")
+						li#mon Monday
+						li#tue Tuesday 
+
+					script.
+						$('.dropdown-toggle').dropdown()					
+
+			footer.container
+				p Running on node with Express, Jade and Stylus!
+script.
+	console.log(!{JSON.stringify(loginData)})
+script.
+	function signout() {
+		window.location.href = '/'
+	}
+script.
+	function configure() {
+		window.location.href = '/configure'
+	}	

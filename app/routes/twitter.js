@@ -44,18 +44,27 @@ console.log(client);
 
 var MyApp = function(app){
 	app.get('/twitter', function(req, res){
-		var url_parts = url.parse(req.url, true);
-		var query = url_parts.query;
-		var regExp = /\(([^)]+)\)/;
-		var matches = regExp.exec(query.name);
 		console.log("in twitter get!");
-		console.log("Twitter search : "+ matches[1]);
-		client.get('search/tweets',{count: 5, q : matches[1]}, function(error, tweets, response){
-			if(error) throw error;
-			console.log(tweets);  // The favorites. 
-		 // console.log(response);  // Raw response object. 
-		res.render('friend',{tweets : tweets});
-		});
+		if(!req.session.userName)
+			res.redirect('/signin');
+		else{
+			var url_parts = url.parse(req.url, true);
+			var query = url_parts.query;
+			var twitterName = '';
+			var	name = query.name.replace(/ *\([^)]*\) */g, '');
+			var regExp = /\(([^)]+)\)/;
+			var matches = regExp.exec(query.name);
+			if(matches != null){
+				twitterName = matches[1].replace('@', '');
+			}
+			console.log("Twitter search : "+ twitterName + ", name : "+ name);
+			client.get('statuses/user_timeline',{count: 50, screen_name : twitterName}, function(error, tweets, response){
+				if(error) throw error;
+				console.log(tweets);  // The favorites. 
+				//	console.log(response);  // Raw response object. 
+				res.render('friend',{tweets : tweets, name : name});
+			});
+		}
 	});
 
 	app.post('/twitter', function(req, res){

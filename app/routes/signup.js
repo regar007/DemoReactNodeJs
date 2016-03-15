@@ -1,4 +1,5 @@
-var loginData = {name : '', age : '',twitterName: '', secret : {username : '', password : ''}};
+//define login object
+var loginData = {name : '', age : '',twitterName: '', hashTag : [], secret : {username : '', password : ''}};
 var mongodbjs = require('../routes/mongodb.js');
 var crypto = require('crypto');
 
@@ -21,8 +22,7 @@ var MyApp = function(app){
 
 		console.log("in signup post : "+ loginData.secret.username);
 		userExist = false;
-		var data = {userType : 'old', user : { name : ''}};
-		mongodbjs.findRecord(loginData, res, req, data, todo);
+		mongodbjs.findRecord(loginData, res, req, todo);
 	});
 
 };
