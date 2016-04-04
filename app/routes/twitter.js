@@ -1,10 +1,11 @@
 var Twitter = require('twitter');
+//NOTE : working hour for unirest API is 9 to 9, so it does not send sms after 9!
 var unirest = require('unirest');
 var url = require('url');
 
-var smsMsendKeys = ["GeNLhyvdA3mshms4sgX0UNlvrMq4p1BS6Y7jsnj7lnSAdQIJPE", "roJ9hoiztsmshqmKewezaAJ3uemyp1G4STBjsnaf0cBFVfmWMY", "dYgQRgFASKmshSndeAKYZ3SSAS4Up1bKunIjsncK6LfpO583GZ", "EwDc7SKpVdmshiBWm87kJJjwNYXVp1Y7XsQjsnhXijtzASXlC7", "kglZT88ajkmshi04f7U7OXx4H7JIp15Uj0QjsnA9Wj80AE8iQe" ];
+var smsMsendKeys = ["GeNLhyvdA3mshms4sgX0UNlvrMq4p1BS6Y7jsnj7lnSAdQIJPE", "TkVUXGPzbtmshgLmNGKzETRULzB5p1zhjSUjsngn8Qz18LKiWp" ,"GL0kvACRGjmshKB4QJyIyv3C3znzp11zvUnjsn3KzIiEs8xhnx" , "GgzPVjghDTmshcf0l5fj4Advrg0Dp1sOSFNjsnVoqNBcnvXjzl", "roJ9hoiztsmshqmKewezaAJ3uemyp1G4STBjsnaf0cBFVfmWMY", "dYgQRgFASKmshSndeAKYZ3SSAS4Up1bKunIjsncK6LfpO583GZ", "EwDc7SKpVdmshiBWm87kJJjwNYXVp1Y7XsQjsnhXijtzASXlC7", "kglZT88ajkmshi04f7U7OXx4H7JIp15Uj0QjsnA9Wj80AE8iQe","GKiP6mPBmBmshCx7E5dHe164Jslap1LdFvrjsn11zIcorsNJfg", "2qYrprcb8WmshusjIjCoVDPTQ1qZp1XDdlljsnM1hvnXSHXesa", "PfRnmtUiummshqRdhnTGr30jaY98p1pKwkLjsnYcJqONE5bkoZ" ];
 
-var newsChanels= ["HT EntertainmentVerified account", "Bollywood Bubble", "Movified Bollywood", "Dailyhunt", "757Live Movies", "TOI Photogallery"];
+var newsChanels= ["HT EntertainmentVerified account", "Bollywood Bubble", "Movified Bollywood", "Dailyhunt", "757Live Movies", "TOI Photogallery", "INDIAN_BY_HEART"];
  
 var params = {screen_name: 'nodejs'};
 var count = 0,
@@ -27,7 +28,6 @@ console.log(client);
 //      throw error;
 //   });
 // });
-
 
 // var client = new Twitter({
 //   consumer_key: process.env.TWITTER_CONSUMER_KEY,
@@ -86,35 +86,43 @@ var MyApp = function(app){
 				console.log(count);
 				for(var i=0; i< count; i++){
 					console.log("searching tweets for ", query['count'+i]);
-					var q = {q : '#'+query['count'+i], lang : 'en', result_type : 'recent', count : 1};
+					var q = {q : '#'+query['count'+i], lang : 'en', result_type : 'recent', count : 20};
 					client.get('search/tweets', q, function(error, tweets, response){
 						if(error)
 							console.log(query['count'+i], " : error");
 						else{
 							tweets.search_metadata.query = '#'+tweets.search_metadata.query.replace("%23","");
+
 							if(query.todo == 'feed'){
 								feed.push(tweets);
 							}
 							else if(query.todo == 'sms'){
-								var x= "Topic "+ tweets.search_metadata.query;
+								var x= tweets.search_metadata.query;
 								for(var ind = 0; ind < tweets.statuses.length; ind++){
-									x = x + tweets.statuses[ind].text +":"+tweets.statuses[ind].created_at+" /n"; 
+									//first tweet of the current topic
+//									if(newsChanels.indexOf(tweets.statuses[ind].user.name) != -1)
+									if(tweets.statuses[ind].text.substring(0,2) != 'RT')
+										x = x + tweets.statuses[ind].text +":"+tweets.statuses[ind].created_at; 
 								}
 //								feed.push(x);
 								messageStr = messageStr + x;
 							}
 							if(allDone==count){
 								console.log("feed : ", feed);
-								console.log("messageStr : ", messageStr);
 								if(query.todo == 'feed'){
 									res.render('updates', {tweets : feed});
 								}
 								else if(query.todo == 'sms'){
+									//shorten the message if larger than 160 character
+									if(messageStr.charAt(160)){
+//										messageStr = messageStr.substring(0,10) + "...";
+									}
+									console.log("Mob No. : "+query.mob+", messageStr : ", messageStr);
 									// These code snippets use an open-source library. sending SMS
-									var item = smsMsendKeys[Math.floor(Math.random()*smsMsendKeys.length)];
-									console.log(item);
-									unirest.get("https://webaroo-send-message-v1.p.mashape.com/sendMessage?message="+"messageStr"+"&phone="+8807435009)
-										.header("X-Mashape-Key", item)
+									var key = smsMsendKeys[Math.floor(Math.random()*smsMsendKeys.length)];
+									console.log(key);
+									unirest.get("https://webaroo-send-message-v1.p.mashape.com/sendMessage?message="+"messageStrAshok"+"&phone="+query.mob)
+										.header("X-Mashape-Key", "avl7MKKf7tmshQ2cBIe8LttZyo5jp1CbOoZjsnbF0Rh1A1Tcq4")
 										.end(function (result) {
 									  		console.log(result.status);
 									  		if(result.status == 200){

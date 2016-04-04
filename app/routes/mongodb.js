@@ -96,8 +96,10 @@ module.exports = {
 		    	console.log("id: "+query._id);
 		    }
 		    else if(todo === 'getConfig'){
-		    	var regExp = / *\([^)]*\) */g;
-				var username = req.session.userName.replace(regExp, '');
+		  //   	var regExp = / *\([^)]*\) */g;
+				// var username = req.session.userName.replace(regExp, '');
+				var username = req.session.userName.substring(0, req.session.userName.indexOf('('));
+				console.log(username);
 		    	query = {_id : crypto.createHash('md5').update(username).digest("hex")};
 		    }
 
@@ -114,7 +116,7 @@ module.exports = {
 		        if(todo === 'signup')
 					res.redirect('/signin?exist='+true);
 				else if(todo === 'signin'){
-			        req.session.userName = result[0].secret.username+ "("+result[0].name+")";
+			        req.session.userName = result[0].secret.username+ "("+result[0].name+")"+result[0].mob;
 //			        console.log(req);
 			        console.log("username :"+ req.session.userName);
 					res.redirect('/welcome?exist='+true);
@@ -131,9 +133,9 @@ module.exports = {
 					// req.session.regenerate(function(err){
 					//    // will have a new session here
 					//  });
-			        req.session.userName = loginData.secret.username+ "("+loginData.name+")";
+			        req.session.userName = loginData.secret.username+ "("+loginData.name+")"+loginData.mob;
 			        console.log(req);
-					saveMongo(loginData, res, data);
+					saveMongo(loginData, res);
 				}
 				if(todo === 'signin')
 					res.redirect('/signin');
@@ -267,7 +269,7 @@ exports.findByUsername = function(username, cb) {
   });
 }
 
-var	saveMongo = function(loginData, res, data){
+var	saveMongo = function(loginData, res){
 		MongoClient.connect(url, function (err, db) {
 		  if (err) {
 		    console.log('Unable to connect to the mongoDB server. Error:', err);
@@ -286,8 +288,6 @@ var	saveMongo = function(loginData, res, data){
 		        userExist = true;
 		      } else {
 		        console.log('Inserted %d documents into the "users" collection. The documents inserted with "_id" are:', result.length + result);
-		      	data.userType = 'new';
-		      	data.user.name = loginData.name;
 		      	res.redirect('/welcome?userType=new');
 
 		      }

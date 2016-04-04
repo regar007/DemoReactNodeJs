@@ -13,6 +13,7 @@ var MyApp = function(app){
 			var todo = 'getConfig';
 			var regExp = /\(([^)]+)\)/;
 			var matches = regExp.exec(req.session.userName);
+			console.log(matches[1]);
 			data.user.name = matches[1];
 			mongodbjs.findRecord(data, res, req, todo);			
 		}

@@ -1,5 +1,5 @@
 //define mongo db data set object
-var mongoData = {name : '', age : '',twitterName: '', hashTag : [], schedule : {days : [], times : []}, secret : {username : '', password : ''}};
+var mongoData = {name : '',mob : 0, age : '',twitterName: '', hashTag : [], schedule : {days : [], times : []}, secret : {username : '', password : ''}};
 var mongodbjs = require('../routes/mongodb.js');
 var crypto = require('crypto');
 
@@ -17,6 +17,7 @@ var MyApp = function(app){
 		mongoData.secret.username = query.username;
 		mongoData.secret.password = crypto.createHash('md5').update(query.password).digest("hex");
 		mongoData.name = query.name;
+		mongoData.mob = query.mob;
 		mongoData.age = query.age;
 		mongoData.twitterName = query.twitterName;
 

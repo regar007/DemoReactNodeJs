@@ -38,6 +38,10 @@ html(lang="en")
 				div.col-sm-10
 					input.form-control(type="name", id = "name", placeholder="Name", name = "name")
 			div.form-group
+				label.control-label.col-sm-2(for="mob") Mobile Number:
+				div.col-sm-10
+					input.form-control(type="number", m id = "mob", placeholder="Mobile No.", name = "mob")
+			div.form-group
 				label.control-label.col-sm-2(for="twitterName") Twitter Name:
 				div.col-sm-10
 					input.form-control(type="twitterName", id="twitterName", placeholder="Twitter Name with @(Optional)", name = "twitterName")
@@ -71,6 +75,15 @@ script.
 		var input = document.getElementById("name").value;
 		if(input == ""){
 			str += 'Name ';
+			invalid = true;
+		}
+		input = document.getElementById("mob").value.toString();
+		if(input.length > 10 || input.length < 10){
+			str += 'Mobile No. ';
+			if(input.length < 10)
+				str += '(Not enough digits) ';
+			else
+				str += '(more digits than required) '; 
 			invalid = true;
 		}
 		input = document.getElementById("age").value;
