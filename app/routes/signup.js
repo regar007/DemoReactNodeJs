@@ -1,5 +1,5 @@
-//define login object
-var loginData = {name : '', age : '',twitterName: '', hashTag : [], secret : {username : '', password : ''}};
+//define mongo db data set object
+var mongoData = {name : '', age : '',twitterName: '', hashTag : [], schedule : {days : [], times : []}, secret : {username : '', password : ''}};
 var mongodbjs = require('../routes/mongodb.js');
 var crypto = require('crypto');
 
@@ -14,15 +14,15 @@ var MyApp = function(app){
 	app.post('/signup', function(req, res){
 		var query = req.body;
 		var todo = 'signup';
-		loginData.secret.username = query.username;
-		loginData.secret.password = crypto.createHash('md5').update(query.password).digest("hex");
-		loginData.name = query.name;
-		loginData.age = query.age;
-		loginData.twitterName = query.twitterName;
+		mongoData.secret.username = query.username;
+		mongoData.secret.password = crypto.createHash('md5').update(query.password).digest("hex");
+		mongoData.name = query.name;
+		mongoData.age = query.age;
+		mongoData.twitterName = query.twitterName;
 
-		console.log("in signup post : "+ loginData.secret.username);
+		console.log("in signup post : "+ mongoData.secret.username);
 		userExist = false;
-		mongodbjs.findRecord(loginData, res, req, todo);
+		mongodbjs.findRecord(mongoData, res, req, todo);
 	});
 
 };

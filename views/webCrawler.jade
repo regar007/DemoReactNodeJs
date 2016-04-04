@@ -1,0 +1,78 @@
+
+html
+	head
+		title A Simple Node, Jade Driven Site!
+		link(rel = 'stylesheet',type="text/css", href = 'http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css')
+		script(src="libs/jquery.min.js")
+		link(rel="stylesheet" href="libs/jquery-ui.css")
+		script(src="libs/jquery-1.10.2.js")
+		script(src="libs/jquery-ui.js")
+		script(src='libs/bootstrap.min.js')
+		script(type='text/javascript').
+				$(document).ready(function(){
+					$(function() {
+						 $( "#countryName" ).autocomplete({
+								focus: function( event, ui ) {
+										var x = $( "#countryName" ).val( ui.item.value);
+										console.log(x['0'].value);
+										return false;
+								},
+								select:function(event,ui){
+										console.log(ui.item.value);
+										window.location.href = '/webCrawler?country='+ui.item.value;
+								},
+								source:function(request, response){
+									$.ajax({
+									url : "/webCrawler",
+									async: false,
+									type: "GET",
+									data : {value: request.term, todo : "countryName"},
+									success : function(responseText) {
+										response(responseText.data);
+									}
+								});
+							}
+						});
+					}); 
+				});
+	body
+		nav.navbar.navbar-inverse
+			div.container-fluid
+				div.navbar-header
+					button.navbar-toggle(type="button" data-toggle="collapse" data-target="#myNavbar")
+						span.icon-bar
+						span.icon-bar
+						span.icon-bar
+					a.navbar-brand(href="/") OfflineSearch
+				div.collapse.navbar-collapse#myNavbar
+					ul.nav.navbar-nav
+						li.active
+							a(href = "/") Home
+					ul.nav.navbar-nav.navbar-right
+						li
+							a(href = "/signup")
+								span.glyphicon.glyphicon-user  Sign Up
+						li
+							a(href = "/signin")
+								span.glyphicon.glyphicon-log-in  Sign In
+	header.container
+		div.row
+			div(style= "margin-top : 100px; ")
+				form.form-horizontal
+					label.control-label.col-sm-3 Search for a Country here!:
+					div.col-sm-5
+						input.form-control.btn-info(type="text", id="countryName", placeholder="Country", name = "country")
+
+
+	footer.container(style="margin-top : 100px;")
+		p Running on node with Express, Jade and Stylus!
+script.
+	console.log(!{JSON.stringify(loginData)})
+script.
+	function signout() {
+		window.location.href = '/'
+	}
+script.
+	function configure() {
+		window.location.href = '/configure'
+	}	

@@ -4,13 +4,13 @@ var url = require('url');
 
 var MyApp = function(app){
 	app.get('/configure', function(req, res){
-		console.log(req);
+//		console.log(req);
 		console.log("in configure get!");
 		var data = {user : {name : ''}};
 		if(!req.session.userName){
 			res.redirect('/signin');
 		}else{
-			var todo = 'getHashTags';
+			var todo = 'getConfig';
 			var regExp = /\(([^)]+)\)/;
 			var matches = regExp.exec(req.session.userName);
 			data.user.name = matches[1];
@@ -20,10 +20,10 @@ var MyApp = function(app){
 
 	app.post('/configure', function(req, res){
 		console.log("in configure post!");
-		var userList = req.body.value;
+		var listData = req.body.value;
 		var todo = req.body.todo;
 
-		mongodbjs.updateCollection(userList, res, req, todo);
+		mongodbjs.updateCollection(listData, res, req, todo);
 
 	});
 };

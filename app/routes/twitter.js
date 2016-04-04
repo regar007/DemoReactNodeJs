@@ -1,6 +1,10 @@
 var Twitter = require('twitter');
+var unirest = require('unirest');
 var url = require('url');
- 
+
+var smsMsendKeys = ["GeNLhyvdA3mshms4sgX0UNlvrMq4p1BS6Y7jsnj7lnSAdQIJPE", "roJ9hoiztsmshqmKewezaAJ3uemyp1G4STBjsnaf0cBFVfmWMY", "dYgQRgFASKmshSndeAKYZ3SSAS4Up1bKunIjsncK6LfpO583GZ", "EwDc7SKpVdmshiBWm87kJJjwNYXVp1Y7XsQjsnhXijtzASXlC7", "kglZT88ajkmshi04f7U7OXx4H7JIp15Uj0QjsnA9Wj80AE8iQe" ];
+
+var newsChanels= ["HT EntertainmentVerified account", "Bollywood Bubble", "Movified Bollywood", "Dailyhunt", "757Live Movies", "TOI Photogallery"];
  
 var params = {screen_name: 'nodejs'};
 var count = 0,
@@ -51,19 +55,81 @@ var MyApp = function(app){
 			var url_parts = url.parse(req.url, true);
 			var query = url_parts.query;
 			var twitterName = '';
-			var	name = query.name.replace(/ *\([^)]*\) */g, '');
-			var regExp = /\(([^)]+)\)/;
-			var matches = regExp.exec(query.name);
-			if(matches != null){
-				twitterName = matches[1].replace('@', '');
+//			var	name = query.name.replace(/ *\([^)]*\) */g, '');
+//			var regExp = /\(([^)]+)\)/;
+			// var matches = regExp.exec(query.name);
+			// if(matches != null){
+			// 	twitterName = matches[1].replace('@', '');
+			// }
+			if(query.name){
+				var str = query.name;
+				if(str.indexOf("@")){
+					twitterName = '@'+str.substr(str.indexOf("@") + 1);
+					name = str.substr(0, str.indexOf("@"));
+				}else{
+					twitterName = '@'+str;
+				}
+				console.log("Twitter search : "+ twitterName + ", name : "+ name);
+				client.get('statuses/user_timeline',{count: 50, screen_name : twitterName}, function(error, tweets, response){
+					if(error)
+						res.redirect('/welcome?twitterName='+twitterName+'&accExist='+false);
+					//console.log(tweets);  // The favorites. 
+					//	console.log(response);  // Raw response object. 
+					res.render('friend',{tweets : tweets, name : name});
+				});
 			}
-			console.log("Twitter search : "+ twitterName + ", name : "+ name);
-			client.get('statuses/user_timeline',{count: 50, screen_name : twitterName}, function(error, tweets, response){
-				if(error) throw error;
-				console.log(tweets);  // The favorites. 
-				//	console.log(response);  // Raw response object. 
-				res.render('friend',{tweets : tweets, name : name});
-			});
+			else if(query.count){
+				var feed = [];
+				var messageStr= '';
+				var allDone = 1;
+				var count = query.count;
+				console.log(count);
+				for(var i=0; i< count; i++){
+					console.log("searching tweets for ", query['count'+i]);
+					var q = {q : '#'+query['count'+i], lang : 'en', result_type : 'recent', count : 1};
+					client.get('search/tweets', q, function(error, tweets, response){
+						if(error)
+							console.log(query['count'+i], " : error");
+						else{
+							tweets.search_metadata.query = '#'+tweets.search_metadata.query.replace("%23","");
+							if(query.todo == 'feed'){
+								feed.push(tweets);
+							}
+							else if(query.todo == 'sms'){
+								var x= "Topic "+ tweets.search_metadata.query;
+								for(var ind = 0; ind < tweets.statuses.length; ind++){
+									x = x + tweets.statuses[ind].text +":"+tweets.statuses[ind].created_at+" /n"; 
+								}
+//								feed.push(x);
+								messageStr = messageStr + x;
+							}
+							if(allDone==count){
+								console.log("feed : ", feed);
+								console.log("messageStr : ", messageStr);
+								if(query.todo == 'feed'){
+									res.render('updates', {tweets : feed});
+								}
+								else if(query.todo == 'sms'){
+									// These code snippets use an open-source library. sending SMS
+									var item = smsMsendKeys[Math.floor(Math.random()*smsMsendKeys.length)];
+									console.log(item);
+									unirest.get("https://webaroo-send-message-v1.p.mashape.com/sendMessage?message="+"messageStr"+"&phone="+8807435009)
+										.header("X-Mashape-Key", item)
+										.end(function (result) {
+									  		console.log(result.status);
+									  		if(result.status == 200){
+									  			res.redirect('/configure');
+									  		}
+									});			
+								}
+							}else{
+								allDone++;
+							}
+							console.log(allDone, ":", i);
+						}
+					});
+				}
+			}
 		}
 	});
 

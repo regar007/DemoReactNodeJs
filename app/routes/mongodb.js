@@ -35,11 +35,24 @@ module.exports = {
 			var collection = db.collection('users');
 			//get the username from session
 			var regExp = / *\([^)]*\) */g;
-			var username = req.session.userName.replace(regExp, '');
+			var username = (req.session.userName) ? req.session.userName.replace(regExp, '') : '' ;
 			var isUpdated= false;
 			console.log(username +" : "+ userdata);
-			// Insert some users
-			collection.update({'secret.username' : username}, {$set: {hashTag : userdata}}, function (err, numUpdated) {
+			var query = {};
+			if(todo === 'userList'){
+				console.log("in userList");
+				query = {$set: {hashTag : userdata}};
+			}
+			else if(todo === 'daysList'){
+				console.log("in daysList	")
+				query = {$set: {'schedule.days' : userdata}};
+			}
+			else if(todo === 'timeList'){
+				query = {$set: {'schedule.times' : userdata}};
+			}
+
+			console.log("query : ", query)
+			collection.update({'secret.username' : username}, query, function (err, numUpdated) {
 			  if (err) {
 			    console.log(err);
 			  } else if (numUpdated) {
@@ -73,7 +86,7 @@ module.exports = {
 		    var collection = db.collection('users');
 
 		    //set query	
-    		var data = {userType : 'old', hashTag : [], user : {name : ''}};
+//    		var data = {userType : 'old', hashTag : [], user : {name : ''}};
 		    var query = {};
 			if(todo === 'signin')
 		    	query = {secret : {username : loginData.secret.username, password : crypto.createHash('md5').update(loginData.secret.password).digest("hex")}};
@@ -82,7 +95,7 @@ module.exports = {
 		    	query = {_id : x};
 		    	console.log("id: "+query._id);
 		    }
-		    else if(todo === 'getHashTags'){
+		    else if(todo === 'getConfig'){
 		    	var regExp = / *\([^)]*\) */g;
 				var username = req.session.userName.replace(regExp, '');
 		    	query = {_id : crypto.createHash('md5').update(username).digest("hex")};
@@ -96,20 +109,19 @@ module.exports = {
 		        console.log(err);
 		      } else if (result.length) {
 		        console.log('Found:', result[0].secret.username);
-		        data.user.name = result[0].name;
+//		        data.user.name = result[0].name;
 
 		        if(todo === 'signup')
 					res.redirect('/signin?exist='+true);
 				else if(todo === 'signin'){
 			        req.session.userName = result[0].secret.username+ "("+result[0].name+")";
-			        console.log(req);
+//			        console.log(req);
 			        console.log("username :"+ req.session.userName);
-					res.render('welcome', data);
+					res.redirect('/welcome?exist='+true);
 				}
-				else if(todo === 'getHashTags'){
-					data.hashTag = result[0].hashTag;
-					console.log("data : ", data);
-					res.render('configure', data);
+				else if(todo === 'getConfig'){
+					console.log("data : ", result[0]);
+					res.render('configure', result[0]);
 				}
 
 		      } else {
@@ -171,7 +183,7 @@ module.exports = {
 		      } else {
 		        console.log('Fetched:', doc);
 	            if(doc)  
-	           		data.push(doc.name +"("+doc.twitterName+")");
+	           		data.push(doc.name +" "+doc.twitterName);
 	           	else{
 //	           		data = JSON.parse(data);
 //					res.setContentType("text/json");

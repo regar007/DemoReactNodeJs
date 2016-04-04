@@ -1,0 +1,67 @@
+
+html
+	head
+		title A Simple Node, Jade Driven Site!
+		link(rel = 'stylesheet',type="text/css", href = 'http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css')
+		script(src="libs/jquery.min.js")
+		link(rel="stylesheet" href="libs/jquery-ui.css")
+		script(src="libs/jquery-1.10.2.js")
+		script(src="libs/jquery-ui.js")
+		script(src='libs/bootstrap.min.js')
+	body
+		nav.navbar.navbar-inverse
+			div.container-fluid
+				div.navbar-header
+					button.navbar-toggle(type="button" data-toggle="collapse" data-target="#myNavbar")
+						span.icon-bar
+						span.icon-bar
+						span.icon-bar
+					a.navbar-brand(href="/") OfflineSearch
+				div.collapse.navbar-collapse#myNavbar
+					ul.nav.navbar-nav
+						li.active
+							a(href = "/") Home
+					ul.nav.navbar-nav
+						li &nbsp;
+					ul.nav.navbar-nav
+						li.active
+							a(href = "/configure") GoBack
+					ul.nav.navbar-nav.navbar-right
+						li
+							a(href = "/signup")
+								span.glyphicon.glyphicon-user  Sign Up
+						li
+							a(href = "/signin")
+								span.glyphicon.glyphicon-log-in  Sign In
+	header.container
+		if tweets.length > 0
+			h1
+				span(style="margin-left : 10%").abel.label-default Here you can see the updates you are going to get!
+			div
+				ul.list-group.nav.nav-pills.nav-stacked(id="posts")
+					each val, index in tweets
+						div
+							button.btn.btn-success Updates from the topic #{val.search_metadata.query}&nbsp;&nbsp;
+								span.badge #{val.statuses.length}
+						div(style = "margin-top : 1%")
+						if val.statuses.length < 1
+							div(style = "margin-top : 1%")
+								span.label.label-warning Sorry! no one is talking about this topic currently except you!
+							div(style = "margin-top : 1%")
+						else 
+							each obj, ind in val.statuses
+								if ind < 20
+									ul.list-group
+										li.list-group-item.list-group-item-info= ind +1 + ': ' + obj.text
+
+				div
+					ul.pagination
+						- for (var i = 0, l = (tweets.length % 10 == 0 && tweets.length >=10)? tweets.length/10 :tweets.length/10 + 1; i < l; i++) {
+							li
+								a(href="") #{i+1}
+						- }
+	footer.container
+		p Running on node with Express, Jade and Stylus!
+script.
+	console.log(!{JSON.stringify(tweets)})
+

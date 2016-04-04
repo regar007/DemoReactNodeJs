@@ -48,6 +48,11 @@ html
 					ul.nav.navbar-nav
 						li.active
 							a(href = "/") Home
+					ul.nav.navbar-nav
+						li &nbsp;
+					ul.nav.navbar-nav
+						li.active
+							a(href = "/signin") Go Back
 					ul.nav.navbar-nav.navbar-right
 						li
 							a(href = "/signup")
@@ -68,11 +73,15 @@ html
 		div.row
 			div.col-md-8(style="float: right;")
 				button.btn.btn-default.btn-primary(onclick="configure()", id = "configure") Configure your UPDATES!
+			div.col-md-8(style="float: right; margin-top : 10px;")
+				button.btn.btn-default.btn-primary(onclick="WebCrawling()", id = "configure") WebCrawling
 			div(style= "margin-top : 100px; ")
 				form.form-horizontal
-					label.control-label.col-sm-3 Search for a friend here!:
+					label.control-label.col-sm-3 Search for a friend's posts here OR use their twiiter name!:
 					div.col-sm-5
 						input.form-control.btn-info(type="text", id="searchName", placeholder="name", name = "name")
+						if twitterFriend != ''
+							h3 No twitter user by #{twitterFriend}'s name! sorry! 
 
 
 	footer.container(style="margin-top : 100px;")

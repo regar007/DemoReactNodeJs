@@ -17,16 +17,16 @@ html
 								delay: 500
 							}
 						});	
-						var listItems = [];
+						var listItems = [], daysList = [], timeList = []; 
 						$("#topic").keyup(function(event){
 							if(event.keyCode == 13 && $("#topic").val() != ''){
 								listItems= [];
 								var text = $("#topic").val();
 								$("#topic").val('');
 								console.log(text);
-								$("#menu-outer div ul").append('<li id = "item" title="Click to REMOVE">#'+text+'</li>');
+								$("#menu-outer div ul").append('<li id = "item" title="Click to REMOVE"><a>#'+text+'</a></li>');
 
-								$("#horizontal-list li").each(function(){
+								$("#horizontal-list li a").each(function(){
 									if($(this).children().size() > 0){return true;}
 									listItems.push($(this).text());
 									console.log(listItems);
@@ -43,20 +43,105 @@ html
 							}
 						});
 						$("#horizontal-list").on("click" , "#item", function(e){
+							listItems=[];
 							var val = $(this).text();
-							for(var i =0, l = listItems.length; i < l; i++){
-								if(listItems[i] == val){
-									listItems.splice(i, 1);
-									break;
-								}
-							}
 							$(this).remove();
+							$("#horizontal-list li a").each(function(){
+								if($(this).children().size() > 0){return true;}
+								listItems.push($(this).text());
+								console.log(listItems);
+							});
 							console.log(listItems);
 							$.ajax({
 								url : "/configure",
 								async: false,
 								type: "POST",
 								data : {value: listItems, todo : "userList"},
+								success : function(responseText) {
+									console.log(responseText.result);
+								}
+							});
+						});							
+						$("#days li").click(function(event){
+							daysList = [];
+							var text = $(this).text();
+							console.log(text);
+							$("#day-outer div ul").append('<li id = "item" title="Click to REMOVE"><a>#'+text+'</a></li>');
+
+							$("#day-outer div ul li a").each(function(){
+								if($(this).children().size() > 0){return true;}
+								daysList.push($(this).text());
+								console.log(daysList);
+							});
+							$.ajax({
+								url : "/configure",
+								async: false,
+								type: "POST",
+								data : {value: daysList, todo : "daysList"},
+								success : function(responseText) {
+									console.log(responseText.result);
+								}
+							});
+						});
+						$("#day-list").on("click" , "#item", function(e){
+							var val = $(this).text();
+							for(var i =0, l = daysList.length; i < l; i++){
+								if(daysList[i] == val){
+									daysList.splice(i, 1);
+									break;
+								}
+							}
+							$(this).remove();
+							console.log(daysList);
+							$.ajax({
+								url : "/configure",
+								async: false,
+								type: "POST",
+								data : {value: daysList, todo : "daysList"},
+								success : function(responseText) {
+									console.log(responseText.result);
+								}
+							});
+						});							
+						$("#time").keyup(function(event){
+							if(event.keyCode == 13 && $("#time").val() != ''){
+								timeList = [];
+								var text = $("#time").val();
+								$("#time").val('');
+								console.log(text);
+								$("#time-outer div ul").append('<li id = "item" title="Click to REMOVE"><a>#'+text+'</a></li>');
+
+								$("#time-list li a").each(function(){
+									if($(this).children().size() > 0){return true;}
+									timeList.push($(this).text());
+									console.log(timeList);
+								});
+								$.ajax({
+									url : "/configure",
+									async: false,
+									type: "POST",
+									data : {value: timeList, todo : "timeList"},
+									success : function(responseText) {
+										console.log(responseText.result);
+									}
+								});
+							}
+						});
+						$("#time-list").on("click" , "#item", function(e){
+							var val = $(this).text();
+							for(var i =0, l = timeList.length; i < l; i++){
+								if(timeList[i] == val){
+									timeList.splice(i, 1);
+									break;
+								}
+							}
+							$(this).remove();
+							console.log(timeList);
+							$.ajax({
+								url : "/configure",
+								async: false,
+								type: "POST",
+								data : {value: timeList, todo : "timeList"},
 								success : function(responseText) {
 									console.log(responseText.result);
 								}
@@ -78,6 +163,11 @@ html
 						ul.nav.navbar-nav
 							li.active
 								a(href = "/") Home
+						ul.nav.navbar-nav
+							li &nbsp;
+						ul.nav.navbar-nav
+							li.active
+								a(href = "/welcome") Go Back
 						ul.nav.navbar-nav.navbar-right
 							li
 								a(href = "/signup")
@@ -86,40 +176,107 @@ html
 								a(href = "/signin")
 									span.glyphicon.glyphicon-log-in  Sign In
 			header.container
-				h1 Hi #{user.name}! 
+				h1 Hi #{name}! 
 				h2 Welcome to the configuration page. Here you create your own list of interests and get updates from time to time on your mobile! 
-				div
-					button(onclick="signout()", id = "sinout") Sign Out
 
-				div(style = "margin-top : 20px;")
-					p Type the topic one by one and enter to create the list
-					Input(type="text", id="topic", placeholder="Topic", name = "topic" )
-				div(id="menu-outer")
-					div( class = "table")
-						ul( id="horizontal-list")
-							if hashTag && hashTag.length
-								each item in hashTag
-									li#item #{item}
+				div(style="margin-top : 5%").raw
+					div.col-xs-4
+						button.btn.btn-Info.dropdown-toggle.form-control(type="button" id="feed" onClick="smsCumUpdate(this)" data-toggle="dropdown")
+							span(data-bind="label") See My Updates&nbsp;
+					div.col-xs-4
+					div.col-xs-4
+						button.btn.btn-Info.dropdown-toggle.form-control(type="button" id="sms" onClick="smsCumUpdate(this)" data-toggle="dropdown")
+							span(data-bind="label") Send Me Updates&nbsp;
+					div.col-xs-12
 
-				div.dropdown
-					button.btn.btn-default.dropdown-toggle(data-toggle="dropdown") SMS Service
-						span.caret
-					ul.dropdown-menu(role="menu" aria-labelledby="menu1")
-						li#mon Monday
-						li#tue Tuesday 
+				div(style="margin-top : 10%").raw
+					div.col-xs-4
+						div(style = "margin-top : 20px;")
+							h1(style="font-size : medium").label.label-default Enter your Topic to create the list
+							div(style = "margin-top : 5%")
+							Input.btn.btn-primary(type="text", id="topic", placeholder="Topic of Interest", name = "topic" )
+							div(id="menu-outer")
+								div( class = "table")
+									ul#horizontal-list
+										if hashTag && hashTag.length
+											each item in hashTag
+												li#item 
+													a(title="Click to REMOVE") #{item}
+					div.col-xs-8
+						div(style = "margin-top : 20px;")
+							h1(style="font-size : medium").label.label-default Choose your choice of Day
+							h1(style="font-size : medium; margin-left : 15%").label.label-default Choose your choice of Time 
+							div(style = "margin-top : 5%")
+							div.col-xs-3.btn-group
+								button.btn.btn-primary( data-toggle="dropdown")
+									span(data-bind="label") Select Day&nbsp;
+								button.btn.btn-primary.dropdown-toggle(data-toggle="dropdown")
+									span.caret(style="height : 20px")
+								ul#days.dropdown-menu(role="menu")
+									li#item
+										a Monday
+									li#item
+										a Tuesday
+									li#item
+										a Wednesday
+									li#item
+										a Thursday
+									li#item
+										a Friday
+									li#item
+										a Saturday
+									li.divider
+									li#item
+										a Weekly
+									li#item
+										a Monthly
+							div.col-xs-2
+								div#day-outer(style="margin-left :-20%")
+									div( class = "table")
+										ul#day-list(style="margin-left :-20%")
+											if schedule.days && schedule.days.length
+												each item in schedule.days
+													li#item 
+														a(title="Click to REMOVE") #{item}
 
-					script.
-						$('.dropdown-toggle').dropdown()					
+							div.col-xs-4
+								Input.btn.btn-primary(style="float : right" type="text", id="time", placeholder="Time (Hour:AM/PM)", name = "time" )
+							div.col-xs-2
+								div#time-outer(style="margin-left :-20%")
+									div( class = "table")
+										ul#time-list
+											if schedule.times && schedule.times.length
+												each item in schedule.times
+													li#item 
+														a(title="Click to REMOVE") #{item}
+
 
 			footer.container
 				p Running on node with Express, Jade and Stylus!
 script.
 	console.log(!{JSON.stringify(loginData)})
 script.
-	function signout() {
-		window.location.href = '/'
-	}
-script.
 	function configure() {
 		window.location.href = '/configure'
+	}
+script.
+	function smsCumUpdate(event) {
+		var str= '';
+		var count = 0;
+		$("#horizontal-list li a").each(function(){
+			if($(this).children().size() > 0){return true;}
+			str = str +'count'+count+"="+$(this).text()+ "&";
+			count++;
+		});
+		str = str + "count="+count;
+		str = str.replace(/#/g,"");
+
+		if(event.id === 'sms'){
+			str = str + "&todo=sms"; 
+		}
+		if(event.id === 'feed'){
+			str = str + "&todo=feed";
+		}
+
+		window.location.href ='/twitter?'+ str
 	}	
