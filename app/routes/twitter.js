@@ -3,7 +3,7 @@ var Twitter = require('twitter');
 var unirest = require('unirest');
 var url = require('url');
 
-var smsMsendKeys = ["GeNLhyvdA3mshms4sgX0UNlvrMq4p1BS6Y7jsnj7lnSAdQIJPE", "TkVUXGPzbtmshgLmNGKzETRULzB5p1zhjSUjsngn8Qz18LKiWp" ,"GL0kvACRGjmshKB4QJyIyv3C3znzp11zvUnjsn3KzIiEs8xhnx" , "GgzPVjghDTmshcf0l5fj4Advrg0Dp1sOSFNjsnVoqNBcnvXjzl", "roJ9hoiztsmshqmKewezaAJ3uemyp1G4STBjsnaf0cBFVfmWMY", "dYgQRgFASKmshSndeAKYZ3SSAS4Up1bKunIjsncK6LfpO583GZ", "EwDc7SKpVdmshiBWm87kJJjwNYXVp1Y7XsQjsnhXijtzASXlC7", "kglZT88ajkmshi04f7U7OXx4H7JIp15Uj0QjsnA9Wj80AE8iQe","GKiP6mPBmBmshCx7E5dHe164Jslap1LdFvrjsn11zIcorsNJfg", "2qYrprcb8WmshusjIjCoVDPTQ1qZp1XDdlljsnM1hvnXSHXesa", "PfRnmtUiummshqRdhnTGr30jaY98p1pKwkLjsnYcJqONE5bkoZ" ];
+var smsMsendKeys = ["GeNLhyvdA3mshms4sgX0UNlvrMq4p1BS6Y7jsnj7lnSAdQIJPE","lk9QLHCFMemsheO7SKxOV13oUkCUp1J9osxjsnKwohAXkno08U","YqmFr1i2pimshuE3TAnR0Sp0A03gp1pHJBpjsnnmsLf0Tfvira", "sKPcCgrtBQmshU2czXX9ftpXBSSkp1LPIkqjsnIoT06qzAKvuf", "TkVUXGPzbtmshgLmNGKzETRULzB5p1zhjSUjsngn8Qz18LKiWp","GL0kvACRGjmshKB4QJyIyv3C3znzp11zvUnjsn3KzIiEs8xhnx" , "GgzPVjghDTmshcf0l5fj4Advrg0Dp1sOSFNjsnVoqNBcnvXjzl", "roJ9hoiztsmshqmKewezaAJ3uemyp1G4STBjsnaf0cBFVfmWMY", "dYgQRgFASKmshSndeAKYZ3SSAS4Up1bKunIjsncK6LfpO583GZ", "EwDc7SKpVdmshiBWm87kJJjwNYXVp1Y7XsQjsnhXijtzASXlC7", "kglZT88ajkmshi04f7U7OXx4H7JIp15Uj0QjsnA9Wj80AE8iQe","GKiP6mPBmBmshCx7E5dHe164Jslap1LdFvrjsn11zIcorsNJfg", "2qYrprcb8WmshusjIjCoVDPTQ1qZp1XDdlljsnM1hvnXSHXesa", "PfRnmtUiummshqRdhnTGr30jaY98p1pKwkLjsnYcJqONE5bkoZ","mHYtNXPpDjmshNl0d3WYuf2UkAp4p1Zjtr3jsnALpTrHtMwcOv", "cNB9GyUFxZmshSCr7aAoDT74OSclp1tyvnCjsnnCvVhjkGF5JK", "rjWcaOKFW1mshKluCf7oju5zQbuup1MMCFCjsnJ0WUvQ2AwqNy","fU5flqIc3zmshDMPxI1GQL2MF1oFp1mLumsjsntIyOOlsu8vZL" ];
 
 var newsChanels= ["HT EntertainmentVerified account", "Bollywood Bubble", "Movified Bollywood", "Dailyhunt", "757Live Movies", "TOI Photogallery", "INDIAN_BY_HEART"];
  
@@ -83,6 +83,7 @@ var MyApp = function(app){
 				var messageStr= '';
 				var allDone = 1;
 				var count = query.count;
+				var textCount = 0;
 				console.log(count);
 				for(var i=0; i< count; i++){
 					console.log("searching tweets for ", query['count'+i]);
@@ -98,11 +99,12 @@ var MyApp = function(app){
 							}
 							else if(query.todo == 'sms'){
 								var x= tweets.search_metadata.query;
-								for(var ind = 0; ind < tweets.statuses.length; ind++){
+								for(var ind = 0; ind < tweets.statuses.length || textCount < 5; ind++){
 									//first tweet of the current topic
 //									if(newsChanels.indexOf(tweets.statuses[ind].user.name) != -1)
 									if(tweets.statuses[ind].text.substring(0,2) != 'RT')
-										x = x + tweets.statuses[ind].text +":"+tweets.statuses[ind].created_at; 
+										textCount++;
+										x = x + " "+tweets.statuses[ind].text +":"+tweets.statuses[ind].created_at+", "; 
 								}
 //								feed.push(x);
 								messageStr = messageStr + x;
@@ -114,20 +116,27 @@ var MyApp = function(app){
 								}
 								else if(query.todo == 'sms'){
 									//shorten the message if larger than 160 character
-									if(messageStr.charAt(160)){
-//										messageStr = messageStr.substring(0,10) + "...";
+									if(messageStr.charAt(500)){
+										messageStr = messageStr.substring(0,500) + "...";
 									}
-									console.log("Mob No. : "+query.mob+", messageStr : ", messageStr);
+									messageStr = messageStr.replace(/\r?\n/g, ' ').replace(/[\r\n]/g, ' ');
+									messageStr = encodeURIComponent(messageStr);
+									var urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+									//messageStr = messageStr.replace(urlRegex, ' ');
+									console.log("Mob No. : "+parseInt(query.mob)+", messageStr : ", messageStr);
 									// These code snippets use an open-source library. sending SMS
 									var key = smsMsendKeys[Math.floor(Math.random()*smsMsendKeys.length)];
 									console.log(key);
-									unirest.get("https://webaroo-send-message-v1.p.mashape.com/sendMessage?message="+"messageStrAshok"+"&phone="+query.mob)
-										.header("X-Mashape-Key", "avl7MKKf7tmshQ2cBIe8LttZyo5jp1CbOoZjsnbF0Rh1A1Tcq4")
+									unirest.get("https://webaroo-send-message-v1.p.mashape.com/sendMessage?message="+messageStr+"&phone="+query.mob)
+										.header("X-Mashape-Key", key)
 										.end(function (result) {
-									  		console.log(result.status);
-									  		if(result.status == 200){
-									  			res.redirect('/configure');
-									  		}
+									  		console.log("status : ",result.status);
+									  		console.log("headers : ",result.headers);
+									  		console.log("body : ",result.body);
+									  		if(result.body.response)
+										  		res.redirect('/configure?status='+ result.body.response.status);
+										  	else
+										  		res.redirect('/configure?status=error');
 									});			
 								}
 							}else{

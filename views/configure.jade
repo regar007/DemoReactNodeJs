@@ -31,6 +31,7 @@ html
 									listItems.push($(this).text());
 									console.log(listItems);
 								});
+								alert(listItems);
 								$.ajax({
 									url : "/configure",
 									async: false,
@@ -176,7 +177,7 @@ html
 								a(href = "/signin")
 									span.glyphicon.glyphicon-log-in  Sign In
 			header.container
-				h1 Hi #{name}! 
+				h1 Hi #{user.name}! 
 				h2 Welcome to the configuration page. Here you create your own list of interests and get updates from time to time on your mobile! 
 
 				div(style="margin-top : 5%").raw
@@ -185,7 +186,7 @@ html
 							span(data-bind="label") See My Updates&nbsp;
 					div.col-xs-4
 					div.col-xs-4
-						button.btn.btn-Info.dropdown-toggle.form-control(type="button" id="sms" onClick="smsCumUpdate(this)" data-toggle="dropdown")
+						button.btn.btn-Info.dropdown-toggle.form-control(type="button" name=user.mob id="sms" onClick="smsCumUpdate(this)" data-toggle="dropdown")
 							span(data-bind="label") Send Me Updates&nbsp;
 					div.col-xs-12
 
@@ -198,8 +199,8 @@ html
 							div(id="menu-outer")
 								div( class = "table")
 									ul#horizontal-list
-										if hashTag && hashTag.length
-											each item in hashTag
+										if user.hashTag && user.hashTag.length
+											each item in user.hashTag
 												li#item 
 													a(title="Click to REMOVE") #{item}
 					div.col-xs-8
@@ -234,8 +235,8 @@ html
 								div#day-outer(style="margin-left :-20%")
 									div( class = "table")
 										ul#day-list(style="margin-left :-20%")
-											if schedule.days && schedule.days.length
-												each item in schedule.days
+											if user.schedule.days && user.schedule.days.length
+												each item in user.schedule.days
 													li#item 
 														a(title="Click to REMOVE") #{item}
 
@@ -245,8 +246,8 @@ html
 								div#time-outer(style="margin-left :-20%")
 									div( class = "table")
 										ul#time-list
-											if schedule.times && schedule.times.length
-												each item in schedule.times
+											if user.schedule.times && user.schedule.times.length
+												each item in user.schedule.times
 													li#item 
 														a(title="Click to REMOVE") #{item}
 
@@ -254,7 +255,7 @@ html
 			footer.container
 				p Running on node with Express, Jade and Stylus!
 script.
-	console.log(!{JSON.stringify(loginData)})
+	console.log(!{JSON.stringify(user)})
 script.
 	function configure() {
 		window.location.href = '/configure'
@@ -272,11 +273,11 @@ script.
 		str = str.replace(/#/g,"");
 
 		if(event.id === 'sms'){
-			str = str + "&todo=sms&mob="+ mob; 
+		// sending mobile no. from name
+			str = str + "&todo=sms&mob="+ event.name; 
 		}
 		if(event.id === 'feed'){
 			str = str + "&todo=feed";
 		}
-
 		window.location.href ='/twitter?'+ str
 	}	

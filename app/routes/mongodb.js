@@ -35,7 +35,7 @@ module.exports = {
 			var collection = db.collection('users');
 			//get the username from session
 			var regExp = / *\([^)]*\) */g;
-			var username = (req.session.userName) ? req.session.userName.replace(regExp, '') : '' ;
+			var username = (req.session.userName) ? req.session.userName.substring(0, req.session.userName.indexOf("(")) : '' ;
 			var isUpdated= false;
 			console.log(username +" : "+ userdata);
 			var query = {};
@@ -73,7 +73,7 @@ module.exports = {
 		});
 	},
 
-	findRecord : function(loginData, res, req, todo){
+	findRecord : function(data, res, req, todo){
 		// Use connect method to connect to the Server
 		MongoClient.connect(url, function (err, db) {
 		  if (err) {
@@ -86,12 +86,11 @@ module.exports = {
 		    var collection = db.collection('users');
 
 		    //set query	
-//    		var data = {userType : 'old', hashTag : [], user : {name : ''}};
 		    var query = {};
 			if(todo === 'signin')
-		    	query = {secret : {username : loginData.secret.username, password : crypto.createHash('md5').update(loginData.secret.password).digest("hex")}};
+		    	query = {secret : {username : data.secret.username, password : crypto.createHash('md5').update(data.secret.password).digest("hex")}};
 		    else if(todo === 'signup'){
-		    	var x = crypto.createHash('md5').update(loginData.secret.username).digest("hex");
+		    	var x = crypto.createHash('md5').update(data.secret.username).digest("hex");
 		    	query = {_id : x};
 		    	console.log("id: "+query._id);
 		    }
@@ -111,7 +110,6 @@ module.exports = {
 		        console.log(err);
 		      } else if (result.length) {
 		        console.log('Found:', result[0].secret.username);
-//		        data.user.name = result[0].name;
 
 		        if(todo === 'signup')
 					res.redirect('/signin?exist='+true);
@@ -122,20 +120,20 @@ module.exports = {
 					res.redirect('/welcome?exist='+true);
 				}
 				else if(todo === 'getConfig'){
-					console.log("data : ", result[0]);
-					res.render('configure', result[0]);
+					console.log("user data : ", result[0]);
+					res.render('configure', {user : result[0], smsStatus : data.user.smsStatus});
 				}
 
 		      } else {
 		      	console.log('id not found');
 		      	if(todo === 'signup'){
-		      		loginData._id = query._id;
+		      		data._id = query._id;
 					// req.session.regenerate(function(err){
 					//    // will have a new session here
 					//  });
-			        req.session.userName = loginData.secret.username+ "("+loginData.name+")"+loginData.mob;
+			        req.session.userName = data.secret.username+ "("+data.name+")"+data.mob;
 			        console.log(req);
-					saveMongo(loginData, res);
+					saveMongo(data, res);
 				}
 				if(todo === 'signin')
 					res.redirect('/signin');
