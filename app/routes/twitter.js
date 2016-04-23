@@ -1,6 +1,7 @@
 var Twitter = require('twitter');
 //NOTE : working hour for unirest API is 9 to 9, so it does not send sms after 9!
 var unirest = require('unirest');
+
 var url = require('url');
 
 var smsMsendKeys = ["GeNLhyvdA3mshms4sgX0UNlvrMq4p1BS6Y7jsnj7lnSAdQIJPE","lk9QLHCFMemsheO7SKxOV13oUkCUp1J9osxjsnKwohAXkno08U","YqmFr1i2pimshuE3TAnR0Sp0A03gp1pHJBpjsnnmsLf0Tfvira", "sKPcCgrtBQmshU2czXX9ftpXBSSkp1LPIkqjsnIoT06qzAKvuf", "TkVUXGPzbtmshgLmNGKzETRULzB5p1zhjSUjsngn8Qz18LKiWp","GL0kvACRGjmshKB4QJyIyv3C3znzp11zvUnjsn3KzIiEs8xhnx" , "GgzPVjghDTmshcf0l5fj4Advrg0Dp1sOSFNjsnVoqNBcnvXjzl", "roJ9hoiztsmshqmKewezaAJ3uemyp1G4STBjsnaf0cBFVfmWMY", "dYgQRgFASKmshSndeAKYZ3SSAS4Up1bKunIjsncK6LfpO583GZ", "EwDc7SKpVdmshiBWm87kJJjwNYXVp1Y7XsQjsnhXijtzASXlC7", "kglZT88ajkmshi04f7U7OXx4H7JIp15Uj0QjsnA9Wj80AE8iQe","GKiP6mPBmBmshCx7E5dHe164Jslap1LdFvrjsn11zIcorsNJfg", "2qYrprcb8WmshusjIjCoVDPTQ1qZp1XDdlljsnM1hvnXSHXesa", "PfRnmtUiummshqRdhnTGr30jaY98p1pKwkLjsnYcJqONE5bkoZ","mHYtNXPpDjmshNl0d3WYuf2UkAp4p1Zjtr3jsnALpTrHtMwcOv", "cNB9GyUFxZmshSCr7aAoDT74OSclp1tyvnCjsnnCvVhjkGF5JK", "rjWcaOKFW1mshKluCf7oju5zQbuup1MMCFCjsnJ0WUvQ2AwqNy","fU5flqIc3zmshDMPxI1GQL2MF1oFp1mLumsjsntIyOOlsu8vZL" ];
@@ -99,7 +100,7 @@ var MyApp = function(app){
 							}
 							else if(query.todo == 'sms'){
 								var x= tweets.search_metadata.query;
-								for(var ind = 0; ind < tweets.statuses.length || textCount < 5; ind++){
+								for(var ind = 0; ind < tweets.statuses.length && textCount < 5; ind++){
 									//first tweet of the current topic
 //									if(newsChanels.indexOf(tweets.statuses[ind].user.name) != -1)
 									if(tweets.statuses[ind].text.substring(0,2) != 'RT')
@@ -133,8 +134,14 @@ var MyApp = function(app){
 									  		console.log("status : ",result.status);
 									  		console.log("headers : ",result.headers);
 									  		console.log("body : ",result.body);
-									  		if(result.body.response)
-										  		res.redirect('/configure?status='+ result.body.response.status);
+									  		var body = JSON.parse(result.body);
+									  		if(body.response){ 
+										  		console.log(body.response);
+										  		if(body.response.status =='success')
+										  			res.redirect('/configure?status='+ body.response.status);
+										  		else
+										  			res.redirect('/configure?status='+ body.response.status+"&details="+(body.response.details) ? body.response.details : '')
+										  	}
 										  	else
 										  		res.redirect('/configure?status=error');
 									});			

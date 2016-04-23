@@ -4,7 +4,7 @@ var url = require('url');
 var MyApp = function(app){
 
 	app.get('/signin', function(req, res){
-		console.log(req);
+//		console.log(req);
 		var data = {exist : false};
 		var url_parts = url.parse(req.url, true);
 		var exist = (url_parts.query.exist) ? true : false;

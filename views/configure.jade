@@ -31,7 +31,6 @@ html
 									listItems.push($(this).text());
 									console.log(listItems);
 								});
-								alert(listItems);
 								$.ajax({
 									url : "/configure",
 									async: false,
@@ -185,6 +184,7 @@ html
 						button.btn.btn-Info.dropdown-toggle.form-control(type="button" id="feed" onClick="smsCumUpdate(this)" data-toggle="dropdown")
 							span(data-bind="label") See My Updates&nbsp;
 					div.col-xs-4
+
 					div.col-xs-4
 						button.btn.btn-Info.dropdown-toggle.form-control(type="button" name=user.mob id="sms" onClick="smsCumUpdate(this)" data-toggle="dropdown")
 							span(data-bind="label") Send Me Updates&nbsp;
@@ -253,13 +253,22 @@ html
 
 
 			footer.container
-				p Running on node with Express, Jade and Stylus!
+				p Running on node with statusExpress, Jade and Stylus!
 script.
-	console.log(!{JSON.stringify(user)})
+	console.log(!{JSON.stringify(sms)})
 script.
 	function configure() {
 		window.location.href = '/configure'
 	}
+script.
+		if(!{JSON.stringify(sms.status)} === 'success')
+			alert("Message was delivered Susscessfully! :)");
+		else if(!{JSON.stringify(sms.status)} === "error"){
+			if(sms.details != undefined)
+				alert(!{JSON.stringify("deatals : "+sms.details)});
+			else
+				alert("Message was not delivered! Sorry!");
+		}
 script.
 	function smsCumUpdate(event) {
 		var str= '';

@@ -2,7 +2,7 @@
 var mongodbjs = require('../routes/mongodb.js');
 var url = require('url');
 //
-var data = {user : {name : '', smsStatus : ''}};
+var data = {user : {name : '', sms : {status : '', details : ''}}};
 
 var MyApp = function(app){
 	app.get('/configure', function(req, res){
@@ -13,8 +13,10 @@ var MyApp = function(app){
 		}else{
 			var query = url.parse(req.url, true).query;
 			var todo = 'getConfig';
+			console.log("status : ", query)
 			if(query.status){
-				data.user.smsStatus = query.status;
+				data.user.sms.status = query.status;
+				data.user.sms.details = query.details;
 			}
 			var regExp = /\(([^)]+)\)/;
 			var matches = regExp.exec(req.session.userName);

@@ -70,6 +70,7 @@ require('./app/routes/twitter.js')(app);
 require('./app/routes/configure.js')(app);
 require('./app/routes/textbelt.js')(app);
 require('./app/routes/unirest.js')(app);
+require('./app/routes/crawler.js')(app);
 //app.use('/signup', signup);
 
 

@@ -120,8 +120,8 @@ module.exports = {
 					res.redirect('/welcome?exist='+true);
 				}
 				else if(todo === 'getConfig'){
-					console.log("user data : ", result[0]);
-					res.render('configure', {user : result[0], smsStatus : data.user.smsStatus});
+					console.log("user data : ", result[0], " status : ", data.user.sms.status);
+					res.render('configure', {user : result[0], sms : {status : data.user.sms.status, details : data.user.sms.details}});
 				}
 
 		      } else {

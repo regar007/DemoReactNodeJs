@@ -22,6 +22,8 @@
     "todomvc-app-css": "^2.0.0",
     "todomvc-common": "^1.0.1",
     "cheerio": "^0.19.0",
+    "simplecrawler" : "*",
+    "plivo" : "*",
     "url-parse": "^1.0.5",
     "request": "^2.65.0",
     "twitter" : "*",

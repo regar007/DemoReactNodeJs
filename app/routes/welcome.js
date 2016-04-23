@@ -8,6 +8,7 @@ var MyApp = function(app){
 		if(!req.session.userName)
 			res.redirect('/signin');
 		else{
+			console.log(req.session.userName);
 			var data = {userType : 'old' ,'twitterFriend' : '', user : {name : ''}};
 			var url_parts = url.parse(req.url, true);
 			// if name is present in url for finding friend then redirect it to twitter

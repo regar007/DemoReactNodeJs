@@ -74,7 +74,7 @@ html
 			div.col-md-8(style="float: right;")
 				button.btn.btn-default.btn-primary(onclick="configure()", id = "configure") Configure your UPDATES!
 			div.col-md-8(style="float: right; margin-top : 10px;")
-				button.btn.btn-default.btn-primary(onclick="WebCrawling()", id = "configure") WebCrawling
+				button.btn.btn-default.btn-primary(onclick="WebCrawling()", id = "webCrwal") Get score for nex match
 			div(style= "margin-top : 100px; ")
 				form.form-horizontal
 					label.control-label.col-sm-3 Search for a friend's posts here OR use their twiiter name!:
@@ -95,4 +95,8 @@ script.
 script.
 	function configure() {
 		window.location.href = '/configure'
+	}
+script.
+	function WebCrawling() {
+		window.location.href = '/score'
 	}	
