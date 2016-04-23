@@ -1,5 +1,5 @@
 //define mongo db data set object
-var mongoData = {name : '',mob : 0, age : '',twitterName: '', hashTag : [], schedule : {days : [], times : []}, secret : {username : '', password : ''}};
+var mongoData = {name : '',mob : 0, age : '',twitterName: '',subscription : {cricSub : {date : new Date(), overInterval : '', noOfMatches : 0 }}, hashTag : [], schedule : {days : [], times : []}, secret : {username : '', password : ''}};
 var mongodbjs = require('../routes/mongodb.js');
 var crypto = require('crypto');
 

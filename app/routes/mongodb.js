@@ -50,6 +50,9 @@ module.exports = {
 			else if(todo === 'timeList'){
 				query = {$set: {'schedule.times' : userdata}};
 			}
+			else if(todo === 'cricSub'){
+				query = {$set: {'subscription.cricSub.date' : new Date(), 'subscription.cricSub.overInterval' : userdata, 'subscription.cricSub.noOfMatches' : 1}};
+			}
 
 			console.log("query : ", query)
 			collection.update({'secret.username' : username}, query, function (err, numUpdated) {

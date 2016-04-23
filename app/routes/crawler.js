@@ -48,11 +48,32 @@ var MyApp = function(app){
       }
       var mob = "+91"+req.session.userName.substr(req.session.userName.indexOf(")") + 1);
       //start crawling...
-      var urlToCrawl = 'http://www.espncricinfo.com/indian-premier-league-2016/engine/match/980931.html';
+      var urlMatch = '';//'http://www.espncricinfo.com/indian-premier-league-2016/engine/match/980931.html';
+      var urlIPL = 'http://www.espncricinfo.com/indian-premier-league-2016/content/series/968923.html';
+ 
+     //get the crrent match url
+      request(urlIPL, function(error, response, html){
+          if(!error){
+            var $ = cheerio.load(html);
+            
+           $('#livescores-full').filter(function(){
+                var a = $(this);
+                  var timeStr = a.find('.result-text').parent().next().first().text();
+                  var time = timeStr.split("begin at ").pop();
+                  var time = time.substring(0, time.indexOf('local'));
+                  console.log(time);
+                  if(new Date().getTime() > time ){
+                    var urlMatch = 'http://www.espncricinfo.com'+a.find('.result-text').children().attr('href');
+                    console.log("b : " ,urlMatch);                    
+                  }
+            })            
+          }
+        });
+        return;
      // urlToCrawl = 'http://www.imdb.com/title/tt2093991/?ref_=inth_ov_tt';
      // currTime = new Date().getTime();
   //     var score = setInterval(function(){
-        request(urlToCrawl, function(error, response, html){
+        request(urlMatch, function(error, response, html){
             if(!error){
             var $ = cheerio.load(html);
 
@@ -110,7 +131,7 @@ var MyApp = function(app){
                     a = a.next();
                 }
                 console.log("total_score 1"+a.children().next().next().text());
-                matchdata.teamBatting.total_score = a.children().next().next().text().replace(/[()]/g, " ");
+                matchdata.teamBatting.total_score = a.children().next().next().text().replace(/[()]/g, "' ");
                 firstInning =false;
               }
               else if(a.text() != 'Bowling' && !firstInning){
@@ -122,19 +143,22 @@ var MyApp = function(app){
                 }
                 console.log("total_score 2"+a.children().next().next().text());
                 matchdata.teamBowling.total_score = matchdata.teamBatting.total_score;
-                matchdata.teamBatting.total_score = a.children().next().next().text().replace(/[()]/g, " ");
+                matchdata.teamBatting.total_score = a.children().next().next().text().replace(/[()]/g, "' ");
               }
             });
            }
           var full_score = JSON.stringify(matchdata);
+
+          msg = "IPL : "+ matchdata.teamBatting.name +" Vs "+ matchdata.teamBowling.name+", Batting : "+matchdata.player1.name+" [ Runs : "+ matchdata.player1.runs+", Balls : "+matchdata.player1.balls+" ] " +"& "+ matchdata.player2.name +" [ Runs : "+ matchdata.player2.runs+", Balls : "+matchdata.player2.balls+" ], Inning 1 total score : "+ matchdata.teamBatting.total_score+ ", Inning 2 total score : "+ matchdata.teamBowling.total_score+ ".";
+
           console.log("full_score : ", full_score);
           console.log("msg : ", msg);
 
           //send score
           var params = {
-              'src': '1111111111', // Sender's phone number with country code
+              'src': +918807435009, // Sender's phone number with country code
               'dst' : mob, // Receiver's phone Number with country code
-              'text' : full_score, // Your SMS Text Message - English
+              'text' : msg, // Your SMS Text Message - English
               //'text' : "こんにちは、元気ですか？" // Your SMS Text Message - Japanese
               //'text' : "Ce est texte généré aléatoirement" // Your SMS Text Message - French
           }; 
@@ -143,7 +167,7 @@ var MyApp = function(app){
           //   console.log('Status: ', status);
           //   console.log('API Response:\n', response);
           // });        
-          res.render('configure');
+          // res.redirect('welcome');
 
         });
 //      },  2000);  

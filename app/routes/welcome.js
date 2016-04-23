@@ -42,7 +42,8 @@ var MyApp = function(app){
 		var data = req.body.value;
 		var todo = req.body.todo;
 		console.log(data);
-		var data = mongodbjs.showRecord(data, todo, res);
+
+		mongodbjs.updateCollection(data, res, req, todo);
 	});
 };
 

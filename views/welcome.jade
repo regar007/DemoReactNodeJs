@@ -11,6 +11,7 @@ html
 		script(type='text/javascript').
 				$(document).ready(function(){
 					$(function() {
+						 //$('#interval').hide();
 						 $( "#searchName" ).autocomplete({
 								focus: function( event, ui ) {
 										var x = $( "#searchName" ).val( ui.item.value);
@@ -33,6 +34,32 @@ html
 								});
 							}
 						});
+						$("#overs li").click(function(event){
+							var text = $(this).text();
+							console.log(text);
+							$('#selected').text(text);
+						});
+						$("#subscribe").click(function(event){
+							var text = $('#selected').text();
+							console.log(text);
+							if(text.toString() === 'Select Overs'){
+								alert("You have not selected over interval, default is 1 over!");
+								text = "1";
+							}
+							//else{								
+								$.ajax({
+									url : "/welcome",
+									async: false,
+									type: "POST",
+									data : {value: text, todo : "cricSub"},
+									success : function(responseText) {
+										console.log(responseText.result);
+									}
+								});
+							//}
+							window.location.href = '/score';
+						});
+
 					}); 
 				});
 	body
@@ -61,20 +88,34 @@ html
 							a(href = "/signin")
 								span.glyphicon.glyphicon-log-in  Sign In
 	header.container
-		if userType === 'new'
-			h1 Welcome Dude #{user.name}!
-			h3 I am Ashok Regar. And this is my very first application made using node, jade, express framework.
-			h3 Thankyou for Signing up!
-		else
-			h1 Welcome back fella #{user.name}!
-			h3 I am Ashok Regar. And this is my very first application made using node, jade, express framework.
-			h3 Thankyou for visiting again!
+		div.jumbotron
+			if userType === 'new'
+				h2 Welcome Dude #{user.name}!
+				label I am Ashok Regar. And this is my very first application made using node, jade, express framework.
+				p Thankyou for Signing up!
+			else
+				h2 Welcome back fella #{user.name}!
+				label I am Ashok Regar. And this is my very first application made using node, jade, express framework.
+				p Thankyou for visiting again!
 
 		div.row
-			div.col-md-8(style="float: right;")
+			div.col-sm-12(style="float: right;")
 				button.btn.btn-default.btn-primary(onclick="configure()", id = "configure") Configure your UPDATES!
-			div.col-md-8(style="float: right; margin-top : 10px;")
-				button.btn.btn-default.btn-primary(onclick="WebCrawling()", id = "webCrwal") Get score for nex match
+		div.row
+			div.col-sm-12(style="float: right; margin-top : 10px;")
+				button#subscribe.btn.btn-default.btn-primary Subscribe for next match
+				div#overs.btn-group
+					button#selected.btn.btn-primary(type='button') Select Overs
+					button.btn.btn-primary.dropdown-toggle(type = 'button' data-toggle="dropdown")
+						span.caret(style="height : 20px")
+					ul.dropdown-menu(role="menu")
+						li#0 
+							a Select Overs
+						- for (var x = 1; x < 11; x++)
+							li#x 
+								a #{x}
+				label &nbsp;Scores will be sent over this interval!
+
 			div(style= "margin-top : 100px; ")
 				form.form-horizontal
 					label.control-label.col-sm-3 Search for a friend's posts here OR use their twiiter name!:
@@ -85,7 +126,7 @@ html
 
 
 	footer.container(style="margin-top : 100px;")
-		p Running on node with Express, Jade and Stylus!
+
 script.
 	console.log(!{JSON.stringify(loginData)})
 script.
@@ -96,7 +137,3 @@ script.
 	function configure() {
 		window.location.href = '/configure'
 	}
-script.
-	function WebCrawling() {
-		window.location.href = '/score'
-	}	

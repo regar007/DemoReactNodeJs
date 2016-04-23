@@ -176,84 +176,88 @@ html
 								a(href = "/signin")
 									span.glyphicon.glyphicon-log-in  Sign In
 			header.container
-				h1 Hi #{user.name}! 
-				h2 Welcome to the configuration page. Here you create your own list of interests and get updates from time to time on your mobile! 
-
-				div(style="margin-top : 5%").raw
-					div.col-xs-4
+				div.jumbotron
+					h2 Hi #{user.name}! 
+					lable Welcome to the configuration page. Here you create your own list of interests and get updates from time to time on your mobile! 
+				div.raw
+					div.col-sm-4
 						button.btn.btn-Info.dropdown-toggle.form-control(type="button" id="feed" onClick="smsCumUpdate(this)" data-toggle="dropdown")
 							span(data-bind="label") See My Updates&nbsp;
-					div.col-xs-4
-
-					div.col-xs-4
+					div.col-sm-4
+					div.col-sm-4
 						button.btn.btn-Info.dropdown-toggle.form-control(type="button" name=user.mob id="sms" onClick="smsCumUpdate(this)" data-toggle="dropdown")
 							span(data-bind="label") Send Me Updates&nbsp;
-					div.col-xs-12
+				
+				div(style="margin-top : 8%").raw
+					div.col-sm-4
+						label.label.label-default Choice of Topic
+					div.col-sm-4
+						label.label.label-default Choice of Day
+					div.col-sm-4
+						label.label.label-default Choice of Time 
 
 				div(style="margin-top : 10%").raw
-					div.col-xs-4
-						div(style = "margin-top : 20px;")
-							h1(style="font-size : medium").label.label-default Enter your Topic to create the list
-							div(style = "margin-top : 5%")
-							Input.btn.btn-primary(type="text", id="topic", placeholder="Topic of Interest", name = "topic" )
-							div(id="menu-outer")
+					div.col-sm-4
+						Input.btn.btn-primary(type="text", id="topic", placeholder="Topic of Interest", name = "topic" )
+					div.col-sm-4
+						div.btn-group
+							button.btn.btn-primary(type='button' data-toggle="dropdown") Select Day&nbsp;
+							button.btn.btn-primary.dropdown-toggle(type = 'button' data-toggle="dropdown")
+								span.caret(style="height : 20px")
+							ul#days.dropdown-menu(role="menu")
+								li#item
+									a Monday
+								li#item
+									a Tuesday
+								li#item
+									a Wednesday
+								li#item
+									a Thursday
+								li#item
+									a Friday
+								li#item
+									a Saturday
+								li.divider
+								li#item
+									a Weekly
+								li#item
+									a Monthly
+					div.col-sm-4
+						Input.btn.btn-primary(type="text", id="time", placeholder="Time (Hour:AM/PM)", name = "time" )
+
+				div(style="margin-top : 15%").raw
+					div.col-sm-4
+						div(id="menu-outer")
+							div( class = "table")
+								ul#horizontal-list
+									if user.hashTag && user.hashTag.length
+										each item in user.hashTag
+											li#item 
+												a(title="Click to REMOVE") #{item}
+
+					div.col-sm-4
+						div.col-xs-2
+							div#day-outer(style="margin-left :-20%")
 								div( class = "table")
-									ul#horizontal-list
-										if user.hashTag && user.hashTag.length
-											each item in user.hashTag
+									ul#day-list(style="margin-left :-20%")
+										if user.schedule.days && user.schedule.days.length
+											each item in user.schedule.days
 												li#item 
 													a(title="Click to REMOVE") #{item}
-					div.col-xs-8
-						div(style = "margin-top : 20px;")
-							h1(style="font-size : medium").label.label-default Choose your choice of Day
-							h1(style="font-size : medium; margin-left : 15%").label.label-default Choose your choice of Time 
-							div(style = "margin-top : 5%")
-							div.col-xs-3.btn-group
-								button.btn.btn-primary( data-toggle="dropdown")
-									span(data-bind="label") Select Day&nbsp;
-								button.btn.btn-primary.dropdown-toggle(data-toggle="dropdown")
-									span.caret(style="height : 20px")
-								ul#days.dropdown-menu(role="menu")
-									li#item
-										a Monday
-									li#item
-										a Tuesday
-									li#item
-										a Wednesday
-									li#item
-										a Thursday
-									li#item
-										a Friday
-									li#item
-										a Saturday
-									li.divider
-									li#item
-										a Weekly
-									li#item
-										a Monthly
-							div.col-xs-2
-								div#day-outer(style="margin-left :-20%")
-									div( class = "table")
-										ul#day-list(style="margin-left :-20%")
-											if user.schedule.days && user.schedule.days.length
-												each item in user.schedule.days
-													li#item 
-														a(title="Click to REMOVE") #{item}
 
-							div.col-xs-4
-								Input.btn.btn-primary(style="float : right" type="text", id="time", placeholder="Time (Hour:AM/PM)", name = "time" )
-							div.col-xs-2
-								div#time-outer(style="margin-left :-20%")
-									div( class = "table")
-										ul#time-list
-											if user.schedule.times && user.schedule.times.length
-												each item in user.schedule.times
-													li#item 
-														a(title="Click to REMOVE") #{item}
+					div.col-sm-4
+						div.col-xs-2
+							div#time-outer(style="margin-left :-20%")
+								div( class = "table")
+									ul#time-list
+										if user.schedule.times && user.schedule.times.length
+											each item in user.schedule.times
+												li#item 
+													a(title="Click to REMOVE") #{item}
+
 
 
 			footer.container
-				p Running on node with statusExpress, Jade and Stylus!
 script.
 	console.log(!{JSON.stringify(sms)})
 script.
