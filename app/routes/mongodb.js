@@ -51,7 +51,7 @@ module.exports = {
 				query = {$set: {'schedule.times' : userdata}};
 			}
 			else if(todo === 'cricSub'){
-				query = {$set: {'subscription.cricSub.date' : new Date(), 'subscription.cricSub.overInterval' : userdata, 'subscription.cricSub.noOfMatches' : 1}};
+				query = {$set: {'subscription.cricSub.matchURL' : userdata.title_href, 'subscription.cricSub.date' : new Date(), 'subscription.cricSub.overInterval' : userdata.overInterval, 'subscription.cricSub.noOfMatches' : 1}};
 			}
 
 			console.log("query : ", query)
@@ -104,6 +104,11 @@ module.exports = {
 				console.log(username);
 		    	query = {_id : crypto.createHash('md5').update(username).digest("hex")};
 		    }
+		    else if(todo === 'getPreferences'){
+				var username = req.session.userName.substring(0, req.session.userName.indexOf('('));
+				console.log(username);
+		    	query = {_id : crypto.createHash('md5').update(username).digest("hex")};		    	
+		    }
 
 		    // Insert some users
 		    console.log("query :" , query);
@@ -125,6 +130,10 @@ module.exports = {
 				else if(todo === 'getConfig'){
 					console.log("user data : ", result[0], " status : ", data.user.sms.status);
 					res.render('configure', {user : result[0], sms : {status : data.user.sms.status, details : data.user.sms.details}});
+				}
+				else if(todo === 'getPreferences'){
+					console.log('user data : ', result[0]);
+					res.render('welcome', {data : data, title_href : result[0].subscription.cricSub.matchURL, overInterval : result[0].subscription.cricSub.overInterval, noOfMatches: result[0].subscription.cricSub.noOfMatches});
 				}
 
 		      } else {

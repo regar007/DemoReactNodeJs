@@ -1,5 +1,8 @@
 var mongodbjs = require('../routes/mongodb.js');
 var url = require('url');
+var request = require('request');
+var cheerio = require('cheerio');
+
 
 var MyApp = function(app){
 	app.get('/welcome', function(req, res){
@@ -9,7 +12,8 @@ var MyApp = function(app){
 			res.redirect('/signin');
 		else{
 			console.log(req.session.userName);
-			var data = {userType : 'old' ,'twitterFriend' : '', user : {name : ''}};
+			var data = {userType : 'old' ,'twitterFriend' : '', user : {name : ''} , matchesDetails : {}};
+			var todo = 'getPreferences';
 			var url_parts = url.parse(req.url, true);
 			// if name is present in url for finding friend then redirect it to twitter
 			if(url_parts.query.name){
@@ -33,7 +37,43 @@ var MyApp = function(app){
 				data.user.name = matches[1];
 			}
 
-			res.render('welcome', data);
+		     //get the future match urls from cricbuzz
+		     if(todo === 'getPreferences'){
+			     var urlCricbuzzIPL = 'http://www.cricbuzz.com/cricket-series/2430/indian-premier-league-2016/matches';
+			     var monthNames = ["January", "February", "March", "Apr", "May", "June",
+					  "July", "August", "September", "October", "November", "December"
+					]; 
+				var matches =[], urls=[], times = [], dateTracker = 0;
+				var d = new Date(), detailFetch = false;
+			     request(urlCricbuzzIPL, function(error, response, html){
+			          if(!error){
+			            var $ = cheerio.load(html);
+			            
+			           $('.schedule-date').filter(function(){
+			                var a = $(this);
+			                if(monthNames.indexOf(a.text().split(" ")[0]) >= d.getMonth() && a.text().split(" ")[1] >= d.getDate().toString() && parseInt(a.text().split(" ")[1]) >= dateTracker ){
+			                	dateTracker = parseInt(a.text().split(" ")[1]);
+			                	console.log("month is : ", monthNames[d.getMonth()]);
+			                	console.log("date is : ", a.text().split(" ")[1]);
+				                //console.log('a : ',a.next().next().children().text().split(','));
+
+				                var matchStr = a.next().next().children().text().split(','); 
+				                matches.push(matchStr[0]);
+				                times.push(a.text() + " : "+matchStr[2].substring(matchStr[2].indexOf('/')+2, matchStr[2].indexOf(' LOCAL')));
+				                urls.push('http://www.cricbuzz.com'+a.next().next().children().children().attr('href'));
+			                }
+			            })            
+				             console.log(matches, times , urls);
+				             data.matchesDetails = { matches : matches, urls : urls, times : times};
+			          }
+							mongodbjs.findRecord(data, res, req, todo);
+			        });
+			    			
+			    }
+			    else{
+					mongodbjs.findRecord(data, res, req, todo);
+				}
+		//	res.render('welcome', data);
 		}
 	});
 
@@ -41,9 +81,35 @@ var MyApp = function(app){
 		console.log("in welcome post!");
 		var data = req.body.value;
 		var todo = req.body.todo;
-		console.log(data);
 
-		mongodbjs.updateCollection(data, res, req, todo);
+		if(todo === 'cricSub'){
+
+	     //get the crrent match url from cricbuzz
+	      var urlCricbuzzIPL = 'http://www.cricbuzz.com/cricket-series/2430/indian-premier-league-2016';
+	      request(urlCricbuzzIPL, function(error, response, html){
+	          if(!error){
+	            var $ = cheerio.load(html);
+	            
+	           $('#scag_content').filter(function(){
+	                var a = $(this).children().children().first();
+	                console.log(a.attr('title'));
+	                console.log(a.attr('href'));
+
+					var title = a.attr('title').replace('Live Cricket Score of','') ;
+					var href = a.attr('href');
+					var title_href = title+"_"+href;
+					console.log("title_href : ",title_href);
+					console.log("overInterval : ",data);
+					var dataToUpdate = {overInterval : data, title_href : [title_href]};
+			
+					mongodbjs.updateCollection(dataToUpdate, res, req, todo);
+	            })            
+	          }
+	        });			
+		}
+		else if(todo === 'searchName'){
+			mongodbjs.showRecord(data , todo , res);
+		}
 	});
 };
 

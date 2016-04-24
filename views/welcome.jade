@@ -42,10 +42,11 @@ html
 						$("#subscribe").click(function(event){
 							var text = $('#selected').text();
 							console.log(text);
-							if(text.toString() === 'Select Overs'){
+							if(text.toString() == 'Select Overs'){
 								alert("You have not selected over interval, default is 1 over!");
 								text = "1";
 							}
+							text = text.replace( /^\D+/g, '');
 							//else{								
 								$.ajax({
 									url : "/welcome",
@@ -57,7 +58,10 @@ html
 									}
 								});
 							//}
-							window.location.href = '/score';
+								var matchURL = $('#nextMatch #0').children().attr('title');
+								console.log("href : ", matchURL);								
+
+							window.location.href = '/score?matchURL='+ matchURL;
 						});
 
 					}); 
@@ -89,12 +93,12 @@ html
 								span.glyphicon.glyphicon-log-in  Sign In
 	header.container
 		div.jumbotron
-			if userType === 'new'
-				h2 Welcome Dude #{user.name}!
+			if data.userType === 'new'
+				h2 Welcome Dude #{data.user.name}!
 				label I am Ashok Regar. And this is my very first application made using node, jade, express framework.
 				p Thankyou for Signing up!
 			else
-				h2 Welcome back fella #{user.name}!
+				h2 Welcome back fella #{data.user.name}!
 				label I am Ashok Regar. And this is my very first application made using node, jade, express framework.
 				p Thankyou for visiting again!
 
@@ -103,32 +107,47 @@ html
 				button.btn.btn-default.btn-primary(onclick="configure()", id = "configure") Configure your UPDATES!
 		div.row
 			div.col-sm-12(style="float: right; margin-top : 10px;")
-				button#subscribe.btn.btn-default.btn-primary Subscribe for next match
+				if overInterval
+					button#subscribe.btn.btn-default.btn-success Subscribe for next match
+				else
+					button#subscribe.btn.btn-default.btn-primary Subscribe for next match
 				div#overs.btn-group
-					button#selected.btn.btn-primary(type='button') Select Overs
-					button.btn.btn-primary.dropdown-toggle(type = 'button' data-toggle="dropdown")
-						span.caret(style="height : 20px")
+					if overInterval
+						button#selected.btn.btn-success.dropdown-toggle(type = 'button' data-toggle="dropdown") One sms in #{overInterval}
+							span.caret
+					else						
+						button#selected.btn.btn-primary.dropdown-toggle(type = 'button' data-toggle="dropdown") Select Overs
+							span.caret
 					ul.dropdown-menu(role="menu")
 						li#0 
 							a Select Overs
 						- for (var x = 1; x < 11; x++)
 							li#x 
-								a #{x}
+								a One sms in #{x}
 				label &nbsp;Scores will be sent over this interval!
+		div.row
+			div.col-sm-12(style="float: right; margin-top : 10px;")
+				button.btn.btn-info.dropdown-toggle(type = 'button' data-toggle="dropdown") List of coming Matches 
+					span.caret
+				ul#nextMatch.dropdown-menu(role="menu")
+					- for (var y = 0; y < data.matchesDetails.matches.length; y++)
+						li(id = y) 
+							a(title = data.matchesDetails.urls[y]) #{data.matchesDetails.matches[y] + " at " + data.matchesDetails.times[y]}   
+
 
 			div(style= "margin-top : 100px; ")
 				form.form-horizontal
 					label.control-label.col-sm-3 Search for a friend's posts here OR use their twiiter name!:
 					div.col-sm-5
 						input.form-control.btn-info(type="text", id="searchName", placeholder="name", name = "name")
-						if twitterFriend != ''
-							h3 No twitter user by #{twitterFriend}'s name! sorry! 
+						if data.twitterFriend != ''
+							h3 No twitter user by #{data.twitterFriend}'s name! sorry! 
 
 
 	footer.container(style="margin-top : 100px;")
 
 script.
-	console.log(!{JSON.stringify(loginData)})
+	console.log(!{JSON.stringify(data.matchesDetails)})
 script.
 	function signout() {
 		window.location.href = '/'

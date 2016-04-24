@@ -17,6 +17,8 @@ html
 								delay: 500
 							}
 						});	
+					$( "#datepicker" ).datepicker();
+						
 						var listItems = [], daysList = [], timeList = []; 
 						$("#topic").keyup(function(event){
 							if(event.keyCode == 13 && $("#topic").val() != ''){
@@ -106,7 +108,7 @@ html
 						$("#time").keyup(function(event){
 							if(event.keyCode == 13 && $("#time").val() != ''){
 								timeList = [];
-								var text = $("#time").val();
+								var text = $("#time").val().replace(/ /g, '');
 								$("#time").val('');
 								console.log(text);
 								$("#time-outer div ul").append('<li id = "item" title="Click to REMOVE"><a>#'+text+'</a></li>');

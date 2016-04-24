@@ -1,7 +1,10 @@
 //define mongo db data set object
-var mongoData = {name : '',mob : 0, age : '',twitterName: '',subscription : {cricSub : {date : new Date(), overInterval : '', noOfMatches : 0 }}, hashTag : [], schedule : {days : [], times : []}, secret : {username : '', password : ''}};
+var mongoData = {name : '',mob : 0, age : '',twitterName: '',subscription : {cricSub : {matchURL : [], date : new Date(), overInterval : '', noOfMatches : 0 }}, hashTag : [], schedule : {days : [], times : []}, secret : {username : '', password : ''}};
 var mongodbjs = require('../routes/mongodb.js');
 var crypto = require('crypto');
+
+//Add the Admin for tracking some data over the time
+
 
 
 var MyApp = function(app){
