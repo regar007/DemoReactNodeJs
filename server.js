@@ -10,30 +10,7 @@ var cookieParser = require('cookie-parser');
 //var passport = require('passport'),
 //Strategy = require('passport-local').Strategy,
 var expressSession = require('express-session');
-//var mongodbjs = require('./app/routes/mongodb.js');
 
-//configure strategy
-// passport.use(new Strategy(
-//   function(username, password, cb) {
-//   	console.log('in strategy :'+username +" : "+passport);
-//     mongodbjs.findByUsername({ username: username }, function (err, user) {
-//       if (err) { return cb(err); }
-//       if (!user) { return cb(null, false); }
-//       if (!user.verifyPassword(password)) { return cb(null, false); }
-//       return cb(null, user);
-//     });
-//   }
-// ));
-
-// passport.serializeUser(function(user, cb) {
-//   cb(null, user.id);
-// });
-
-// passport.deserializeUser(function(id, cb) {
-//   mongodbjs.findById(id, function (err, user) {
-//     cb(err, user);
-//   });
-// });
 
  app.use(cookieParser());
 // app.use(require('express-session')({ secret: 'keyboard-cat', resave: false, saveUninitialized: false }));
@@ -73,46 +50,6 @@ require('./app/routes/unirest.js')(app);
 require('./app/routes/crawler.js')(app);
 //app.use('/signup', signup);
 
-
-// router.get('/', function(req, res){
-// 	res.render('contact');
-// });
-
-// router.post('/secret', function(req, res){
-// 	var secret = req.body.secret;
-// 	var user = {
-// 		authorised : {
-// 			toggle : false,
-// 			key1 : {
-// 				name : secret,
-// 				comp : "Pramati"
-// 			}
-// 		}
-// 	};
-// 	user.authorised.toggle = (secret === secretKey) ? true : false;
-// 	console.log(user.authorised.key1.name);
-// 	res.render("secret", user);
-// });
-//parameter
-// router.get('/secret/:key', function(req, res){
-// 	var key = req.body.key;
-// 	var user = {};
-// 	user.authorised = (secret === secretKey) ? true: false;
-// 	console.log("2"+user.authorised);
-// 	res.render('secret', user);
-// });
-// Query
-// router.get('/secret*', function (req, res) {  
-//   var key = req.query.key;
-//   res.end('Password: ' + key);
-// });
-// router.get('/secret', function(req , res){
-// 	var user = {
-// 		authorised : false
-// 	};
-// 	console.log("3"+ user.authorised);
-// 	res.render('secret', user);
-// });
 
 //Route not found -- Set 404
 app.get('*', function(req, res) {
