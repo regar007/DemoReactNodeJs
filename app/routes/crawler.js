@@ -2,6 +2,23 @@ var request = require('request');
 var cheerio = require('cheerio');
 var url = require('url');
 var URL = require('url-parse');
+var kue = require('kue'),
+queue = kue.createQueue();
+
+var redis = require('redis');
+var client = redis.createClient(); //creates a new client
+
+// queue.process('score', function(job, done){
+
+//   queue.create('score', {
+//           jobId: job.data.jobId + 1
+//       }).delay(5000).save();
+//  //   sendCricketScore(job.data.jobId, done);
+//  email(job.data.jobId, done);
+//  // console.log("sending score now...");
+// });
+
+
 var currTime;
 
 //Plivo another SMS api to send sms
@@ -10,26 +27,6 @@ var p = plivo.RestAPI({
   authId: 'MAYMEXZJRLNTA3NDRMNJ',
   authToken: 'NzhiNDIyM2Y0ZTM3ZWU4NDM2YWM1OWU1MDc3NjM1'
 });
-
-
-
-//var Crawler = require("simplecrawler");
-
-// var pageToVisit = "http://www.arstechnica.com";
-// console.log("Visiting page " + pageToVisit);
-// request(pageToVisit, function(error, response, body) {
-//    if(error) {
-//      console.log("Error: " + error);
-//    }
-//    // Check status code (200 is HTTP OK)
-//    console.log("Status code: " + response.statusCode);
-//    if(response.statusCode === 200) {
-//      // Parse the document body
-//      var $ = cheerio.load(body);
-//      console.log("Page title:  " + $('title').text());
-//    }
-// });
-
 
 var MyApp = function(app){
   app.get('/score', function(req, res){
@@ -43,56 +40,94 @@ var MyApp = function(app){
       var matchdata;
       if(query.matchURL){
         console.log("url for match: ", query.matchURL)
+        console.log("time for match: ", query.time)
       }
       var mob = "+91"+req.session.userName.substr(req.session.userName.indexOf(")") + 1);
-      //start crawling...
-      var urlMatch = 'http://www.espncricinfo.com/indian-premier-league-2016/engine/match/980937.html';//'http://www.espncricinfo.com/indian-premier-league-2016/engine/match/980931.html';
+
       var urlCricinfoIPL = 'http://www.espncricinfo.com/indian-premier-league-2016/engine/match/980937.html';
       var urlCricbuzzIPL = query.matchURL.replace(/ /g, '');
 
-     //get the crrent match url from cricinfo
-      request(urlCricinfoIPL, function(error, response, html){
-          if(!error){
-            var $ = cheerio.load(html);
-            
-           $('#livescores-full').filter(function(){
-                var a = $(this);
-                  var timeStr = a.find('.result-text').parent().next().first().text();
-                  var time = timeStr.split("begin at ").pop();
-                  var time = time.substring(0, time.indexOf('local'));
-                  console.log(time);
-                  if(new Date().getTime() > time ){
-                    var urlMatch = 'http://www.espncricinfo.com'+a.find('.result-text').children().attr('href');
-                    console.log("b : " ,urlMatch);                    
-                  }
-                  else{
-                    var url1 = 'http://www.cricbuzz.com/live-cricket-scores/16407/gl-vs-rcb-19th-match-indian-premier-league-2016';
-                  }
-            })            
-          }
-        });
+      //use kue to create a job
+      var date = parseInt(query.time.substring(query.time.indexOf(' at')+3).split(" ")[2]);
+      var match_time = parseInt(query.time.substring(query.time.indexOf(':')+1));
+      var am_pm = query.time.indexOf("AM"); 
+      console.log("date : ", date,", match_time : ",match_time, ", am_pm : ", am_pm);
 
-     // urlToCrawl = 'http://www.imdb.com/title/tt2093991/?ref_=inth_ov_tt';
-     // currTime = new Date().getTime();
-  //     var score = setInterval(function(){
-        request(urlCricbuzzIPL, function(error, response, html){
+      //get current time
+      var d = new Date();
+      var hrUTC = d.getUTCHours();
+      var minUTC = d.getUTCMinutes();
+      var hr = (hrUTC + 5 > 24) ? (hrUTC + 5 - 24) :  hrUTC + 5;
+      if(hrUTC + 5 > 24 || (hrUTC + 5 > 23 && minUTC + 30 > 60 )){
+        date = date - 1;
+      }
+      var min = minUTC + 30 ;
+
+      //calculate delay in miliseconds
+      var daysRemain= (date - d.getUTCDate());
+      if(am_pm == -1){
+        match_time = match_time + 12;
+      }
+      var hrRemain = (match_time - hr );
+      var minElapsed = -min;
+      var timeInMili = ((((daysRemain * 24) + hrRemain) * 60) + minElapsed) * 60 * 1000;
+      console.log("daysRemain : "+ daysRemain+", hrRemain : "+ hrRemain+", minElapsed : "+ minElapsed + ", timeInMili : "+ timeInMili);
+
+
+      var user = urlCricbuzzIPL; //req.session.userName.substr(0, req.session.userName.indexOf("("));
+      console.log(user);
+      var job = queue.create('score', {
+          jobId: 1
+      }).delay(5000).priority('high').attempts(2).save( function(err){
+         if( !err ) console.log( job.id );
+      });      
+
+
+    res.redirect('welcome');
+
+    }
+  });
+
+  app.post('/score', function(req, res){
+    console.log("in score post!");
+    var listData = req.body.value;
+    var todo = req.body.todo;
+
+    mongodbjs.updateCollection(listData, res, req, todo);
+
+  });
+
+};
+
+module.exports = MyApp;
+
+  function email(data, done){
+      console.log("job ",  data , " is done");
+      done();
+  }
+
+  function sendCricketScore(urlCricbuzzIPL, done){
+
+      var msg = "";
+
+      // trying diifferent div's to get score
+      var count = 0,firstInning = true, matchdata = {requirement : '', player1 : {name : '', runs : 0, balls : 0}, player2 : {name : '', runs : 0, balls : 0}, teamBatting : {name :'', total_score : '' }, teamBowling : {name :'', total_score : '' }};
+      var matchOver = false;
+
+       var score = setInterval(function(){
+        request("http://www.cricbuzz.com/live-cricket-scores/16419/gl-vs-dd-31st-match-indian-premier-league-2016", function(error, response, html){
             if(!error){
             var $ = cheerio.load(html);
             console.log("in cricbuzz");
 
-            var msg = "";
- 
-          // trying diifferent div's to get score
-          var count = 0,firstInning = true, matchdata = {requirement : '', player1 : {name : '', runs : 0, balls : 0}, player2 : {name : '', runs : 0, balls : 0}, teamBatting : {name :'', total_score : '' }, teamBowling : {name :'', total_score : '' }};
-           //  $('.innings-information').each(function(i, element){
-           //      var data = $(this);
-           //      console.log("current : ", data.text());
-           //      var team1 = data.children().first().text();
-           //      var team2 = data.children().first().next().text();
-           //      var requirement = data.children().first().next().next().text();
-
-           //      console.log(team1 ," :", team2, " : ", requirement, " : ");
-           //  }); 
+          //check if match over
+            $('.cb-text-mom').each(function(i, element){
+                var data = $(this);
+                console.log("current : ", data.text());
+                if(data.text() != ""){
+                    matchOver = true;
+                }
+            }); 
            // $('.innings-1-score ').each(function(i, element){
            //      var data = $(this);
            //      console.log("score 1 : ", data);
@@ -104,6 +139,12 @@ var MyApp = function(app){
                 var data = $(this);
                 console.log("score 1 : ", data.children().next().next().first().text());
                 var team1 = data.children().first().text().trim().replace(" +", " ");
+
+                //if team1 name is empty then match is not started
+                if(team1 == ""){
+                  return;
+                }
+
                 var team2 = data.children().next().first().text().trim().replace(" +", " ");
                 var requir = data.children().next().next().first().text();
 
@@ -187,37 +228,53 @@ var MyApp = function(app){
           //send score
           var params = {
               'src': +111111111, // Sender's phone number with country code
-              'dst' : mob, // Receiver's phone Number with country code
+              'dst' : 111,//mob, // Receiver's phone Number with country code
               'text' : msg, // Your SMS Text Message - English
               //'text' : "こんにちは、元気ですか？" // Your SMS Text Message - Japanese
               //'text' : "Ce est texte généré aléatoirement" // Your SMS Text Message - French
           }; 
 
-          p.send_message(params, function (status, response) {
-            console.log('Status: ', status);
-            console.log('API Response:\n', response);
-          });        
-          res.redirect('welcome');
+          // p.send_message(params, function (status, response) {
+          //   console.log('Status: ', status);
+          //   console.log('API Response:\n', response);
+          // });        
 
         });
-//      },  5000);  
+      },  5000);  
+      
+      if(matchOver)
+        setTimeout(function(){ 
+          console.log("score cleared!");
+          clearInterval(score);
+        });
 
-      setTimeout(function(){ 
-        console.log("score cleared!");
-    //    clearInterval(score);
-      }, 20000);
+      done();
         // Finally, we'll just send out a message to the browser reminding you that this app does not have a UI.
-    }
-  });
+  }
 
-  app.post('/score', function(req, res){
-    console.log("in score post!");
-    var listData = req.body.value;
-    var todo = req.body.todo;
 
-    mongodbjs.updateCollection(listData, res, req, todo);
 
-  });
-};
+   // //get the crrent match url from cricinfo
+   //  request(urlCricinfoIPL, function(error, response, html){
+   //      if(!error){
+   //        var $ = cheerio.load(html);
+          
+   //       $('#livescores-full').filter(function(){
+   //            var a = $(this);
+   //              var timeStr = a.find('.result-text').parent().next().first().text();
+   //              var time = timeStr.split("begin at ").pop();
+   //              var time = time.substring(0, time.indexOf('local'));
+   //              console.log(time);
+   //              if(new Date().getTime() > time ){
+   //                var urlMatch = 'http://www.espncricinfo.com'+a.find('.result-text').children().attr('href');
+   //                console.log("b : " ,urlMatch);                    
+   //              }
+   //              else{
+   //                var url1 = 'http://www.cricbuzz.com/live-cricket-scores/16407/gl-vs-rcb-19th-match-indian-premier-league-2016';
+   //              }
+   //        })            
+   //      }
+   //    });
 
-module.exports = MyApp;
+   // // urlToCrawl = 'http://www.imdb.com/title/tt2093991/?ref_=inth_ov_tt';
+   // // currTime = new Date().getTime();

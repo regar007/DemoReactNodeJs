@@ -9,18 +9,20 @@ var MongoClient = mongodb.MongoClient;
 var url = 'mongodb://localhost:27017/mongo_db1';
 var init = false;
 
-// if(!init){
-// 	console.log("init: "+init);
-// 	MongoClient.connect(url, function (err, db) {
-// 	  if (err) {
-// 	    console.log('Unable to connect to the mongoDB server. Error:', err);
-// 	  } else {
-// 	  	var users = db.collection('users') 
+ if(!init){
+ 	console.log("init: "+init);
+ 	MongoClient.connect(url, function (err, db) {
+ 	  if (err) {
+ 	    console.log('Unable to connect to the mongoDB server. Error:', err);
+ 	  } else {
+// 	  	var users = db.collection('users'); 
 // 	  	users.remove();
-// 	  }
-// 	});
-// 	init = !init;
-// };
+	  	var admin = db.collection('admin'); 
+	  	admin.remove();
+ 	  }
+ 	});
+ 	init = !init;
+ };
 
 
 module.exports = {
@@ -33,12 +35,17 @@ module.exports = {
 			console.log('Connection established to: updateCollection', url);
 			// Get the documents collection
 			var collection = db.collection('users');
+			if(req === 'adminUpdate'){
+				collection = db.collection('admin');
+			}
+
+			var query = {};
+
 			//get the username from session
 			var regExp = / *\([^)]*\) */g;
-			var username = (req.session.userName) ? req.session.userName.substring(0, req.session.userName.indexOf("(")) : '' ;
+			var username = (req.session && req.session.userName) ? req.session.userName.substring(0, req.session.userName.indexOf("(")) : '' ;
 			var isUpdated= false;
 			console.log(username +" : "+ userdata);
-			var query = {};
 			if(todo === 'userList'){
 				console.log("in userList");
 				query = {$set: {hashTag : userdata}};
@@ -51,10 +58,13 @@ module.exports = {
 				query = {$set: {'schedule.times' : userdata}};
 			}
 			else if(todo === 'cricSub'){
-				query = {$set: {'subscription.cricSub.matchURL' : userdata.title_href, 'subscription.cricSub.date' : new Date(), 'subscription.cricSub.overInterval' : userdata.overInterval, 'subscription.cricSub.noOfMatches' : 1}};
+				query = {$set: {'subscription.cricSub.matchName' : userdata.matchName, 'subscription.cricSub.matchURL' : userdata.matchURL, 'subscription.cricSub.date' : userdata.date, 'subscription.cricSub.overInterval' : userdata.overInterval, 'subscription.cricSub.noOfMatches' : 1}};
+			}else if(todo == 'IPL'){
+				username = 'regar007';
+				query = {$set: {'subscription.iplSub.matchesNames' : userdata.matches, 'subscription.iplSub.matchesURL' : userdata.urls, 'subscription.iplSub.matchesDates' : userdata.dates}};
 			}
 
-			console.log("query : ", query)
+//			console.log("query : ", query)
 			collection.update({'secret.username' : username}, query, function (err, numUpdated) {
 			  if (err) {
 			    console.log(err);
@@ -65,10 +75,13 @@ module.exports = {
 			    console.log('No document found with defined "find" criteria!');
 			  }
 
-			  if(isUpdated)
-			  	res.json({result : 'success'});
-			  else
-			  	res.json({result : 'failed'});
+			  if(req != 'adminUpdate'){
+			 	 if(isUpdated)
+			  		res.json({result : 'success'});
+			  	else
+			  		res.json({result : 'failed'});
+			  }
+
 			  //Close connection
 			  db.close();			 
 			});
@@ -86,10 +99,13 @@ module.exports = {
 		    console.log('Connection established to: findUser', url);
 
 		    // Get the documents collection
-		    var collection = db.collection('users');
-
+	    	var collection = db.collection('users');
+		    if(todo === 'admin'){
+		    	collection = db.collection('admin');
+		    }
 		    //set query	
 		    var query = {};
+		    var adminData = {};
 			if(todo === 'signin')
 		    	query = {secret : {username : data.secret.username, password : crypto.createHash('md5').update(data.secret.password).digest("hex")}};
 		    else if(todo === 'signup'){
@@ -105,12 +121,28 @@ module.exports = {
 		    	query = {_id : crypto.createHash('md5').update(username).digest("hex")};
 		    }
 		    else if(todo === 'getPreferences'){
+		    	//get common data from admin account
+		    	query = {'secret.username' : 'regar007'};
+		    	db.collection('admin').find(query).toArray(function(err, result){
+		    		if(!err){
+						console.log("Admin : ",result[0]);
+		    			var details = result[0].subscription.iplSub;
+		    			adminData.matchesDetails = {matches : details.matchesNames , dates : details.matchesDates, urls : details.matchesURL};
+		    		}
+		    	});
 				var username = req.session.userName.substring(0, req.session.userName.indexOf('('));
 				console.log(username);
 		    	query = {_id : crypto.createHash('md5').update(username).digest("hex")};		    	
 		    }
+		    else if(todo === 'admin'){
+		    	var x = crypto.createHash('md5').update(data.secret.username).digest("hex");
+		    	query = {_id : x};
+		    	console.log("id: "+query._id);		    	
+		    }
+		    else if(todo === 'sms'){
+		    	query = {'subscription.cricSub.matchURL.0' : data};
+		    }
 
-		    // Insert some users
 		    console.log("query :" , query);
 		    
 			collection.find(query).toArray(function (err, result) {
@@ -133,22 +165,28 @@ module.exports = {
 				}
 				else if(todo === 'getPreferences'){
 					console.log('user data : ', result[0]);
-					res.render('welcome', {data : data, title_href : result[0].subscription.cricSub.matchURL, overInterval : result[0].subscription.cricSub.overInterval, noOfMatches: result[0].subscription.cricSub.noOfMatches});
+					res.render('welcome', {data : data, adminData : adminData, title_href : result[0].subscription.cricSub.matchURL, overInterval : result[0].subscription.cricSub.overInterval, noOfMatches: result[0].subscription.cricSub.noOfMatches});
+				}
+				else if(todo == 'sms'){
+					//res is callback here
+					res(null, result);
 				}
 
 		      } else {
 		      	console.log('id not found');
-		      	if(todo === 'signup'){
+				if(todo === 'admin'){
 		      		data._id = query._id;
-					// req.session.regenerate(function(err){
-					//    // will have a new session here
-					//  });
+					saveMongo(data, todo);
+				}
+		      	else if(todo === 'signup'){
+		      		data._id = query._id;
 			        req.session.userName = data.secret.username+ "("+data.name+")"+data.mob;
 			        console.log(req);
 					saveMongo(data, res);
 				}
-				if(todo === 'signin')
+				else if(todo === 'signin'){
 					res.redirect('/signin');
+				}
 		      }
 		      //Close connection
 		      db.close();
@@ -209,76 +247,6 @@ module.exports = {
 	}
 };
 
-exports.findById = function(id, cb) {
-  process.nextTick(function() {
-	MongoClient.connect(url, function (err, db) {
-	  if (err) {
-	    console.log('Unable to connect to the mongoDB server. Error:', err);
-	  } else {
-	    //HURRAY!! We are connected. :)
-	    console.log('Connection established to: findUserById', url);
-
-	    // Get the documents collection
-	    var collection = db.collection('users');
-
-	    //set query	
-	    var query = {_id : id};
-
-	    // Insert some users
-	    console.log("query :" , query);
-	    
-		collection.find(query).toArray(function (err, result) {
-	      if (err) {
-	        console.log(err);
-	      } else if (result.length) {
-	      	cb(null, result[0]);
-	      } else {
-	      	console.log('id not found');
-		      cb(new Error('User ' + id + ' does not exist'));	      
-		  }
-	      //Close connection
-	      db.close();
-	    });
-	  }
-	});
-  });
-}
-
-exports.findByUsername = function(username, cb) {
-  process.nextTick(function() {
-	MongoClient.connect(url, function (err, db) {
-	  if (err) {
-	    console.log('Unable to connect to the mongoDB server. Error:', err);
-	  } else {
-	    //HURRAY!! We are connected. :)
-	    console.log('Connection established to: findByUsername', url);
-
-	    // Get the documents collection
-	    var collection = db.collection('users');
-
-	    //set query	
-	    var query = {secret : {username : username}};
-
-	    // Insert some users
-	    console.log("query :" , query);
-	    
-		collection.find(query).toArray(function (err, result) {
-	      if (err) {
-	        console.log(err);
-	      } else if (result.length) {
-	      	return cb(null, result[0]);
-	      } else {
-	      	console.log(username +' not found');
-		  }
-	      //Close connection
-	      db.close();
-		  return cb(null, null);
-	    });
-	  }
-	});
-  });
-}
-
 var	saveMongo = function(loginData, res){
 		MongoClient.connect(url, function (err, db) {
 		  if (err) {
@@ -289,6 +257,9 @@ var	saveMongo = function(loginData, res){
 
 		    // Get the documents collection
 		    var collection = db.collection('users');
+		    if(res === 'admin'){
+		    	collection = db.collection('admin');
+		    }
 
 		    // Insert some users
 		    console.log(loginData);
@@ -297,8 +268,9 @@ var	saveMongo = function(loginData, res){
 		        console.log(err);
 		        userExist = true;
 		      } else {
-		        console.log('Inserted %d documents into the "users" collection. The documents inserted with "_id" are:', result.length + result);
-		      	res.redirect('/welcome?userType=new');
+		        console.log('Inserted %d documents into the "users" collection. The documents inserted with "_id" are:', result.length);
+		      	if(res !== 'admin')
+			      	res.redirect('/welcome?userType=new');
 
 		      }
 		      //Close connection

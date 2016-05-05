@@ -39,36 +39,7 @@ var MyApp = function(app){
 
 		     //get the future match urls from cricbuzz
 		     if(todo === 'getPreferences'){
-			     var urlCricbuzzIPL = 'http://www.cricbuzz.com/cricket-series/2430/indian-premier-league-2016/matches';
-			     var monthNames = ["January", "February", "March", "Apr", "May", "June",
-					  "July", "August", "September", "October", "November", "December"
-					]; 
-				var matches =[], urls=[], times = [], dateTracker = 0;
-				var d = new Date(), detailFetch = false;
-			     request(urlCricbuzzIPL, function(error, response, html){
-			          if(!error){
-			            var $ = cheerio.load(html);
-			            
-			           $('.schedule-date').filter(function(){
-			                var a = $(this);
-			                if(monthNames.indexOf(a.text().split(" ")[0]) >= d.getMonth() && a.text().split(" ")[1] >= d.getDate().toString() && parseInt(a.text().split(" ")[1]) >= dateTracker ){
-			                	dateTracker = parseInt(a.text().split(" ")[1]);
-			                	console.log("month is : ", monthNames[d.getMonth()]);
-			                	console.log("date is : ", a.text().split(" ")[1]);
-				                //console.log('a : ',a.next().next().children().text().split(','));
-
-				                var matchStr = a.next().next().children().text().split(','); 
-				                matches.push(matchStr[0]);
-				                times.push(a.text() + " : "+matchStr[2].substring(matchStr[2].indexOf('/')+2, matchStr[2].indexOf(' LOCAL')));
-				                urls.push('http://www.cricbuzz.com'+a.next().next().children().children().attr('href'));
-			                }
-			            })            
-				             console.log(matches, times , urls);
-				             data.matchesDetails = { matches : matches, urls : urls, times : times};
-			          }
-							mongodbjs.findRecord(data, res, req, todo);
-			        });
-			    			
+					mongodbjs.findRecord(data, res, req, todo);			    			
 			    }
 			    else{
 					mongodbjs.findRecord(data, res, req, todo);
@@ -85,27 +56,29 @@ var MyApp = function(app){
 		if(todo === 'cricSub'){
 
 	     //get the crrent match url from cricbuzz
-	      var urlCricbuzzIPL = 'http://www.cricbuzz.com/cricket-series/2430/indian-premier-league-2016';
-	      request(urlCricbuzzIPL, function(error, response, html){
-	          if(!error){
-	            var $ = cheerio.load(html);
+	    //   var urlCricbuzzIPL = 'http://www.cricbuzz.com/cricket-series/2430/indian-premier-league-2016';
+	    //   request(urlCricbuzzIPL, function(error, response, html){
+	    //       if(!error){
+	    //         var $ = cheerio.load(html);
 	            
-	           $('#scag_content').filter(function(){
-	                var a = $(this).children().children().first();
-	                console.log(a.attr('title'));
-	                console.log(a.attr('href'));
+	    //        $('#scag_content').filter(function(){
+	    //             var a = $(this).children().children().first();
+	    //             console.log(a.attr('title'));
+	    //             console.log(a.attr('href'));
 
-					var title = a.attr('title').replace('Live Cricket Score of','') ;
-					var href = a.attr('href');
-					var title_href = title+"_"+href;
-					console.log("title_href : ",title_href);
-					console.log("overInterval : ",data);
-					var dataToUpdate = {overInterval : data, title_href : [title_href]};
+					// var title = a.attr('title').replace('Live Cricket Score of','') ;
+					// var href = a.attr('href');
+					// var title_href = title+"_"+href;
+					// console.log("title_href : ",title_href);
+					// console.log("overInterval : ",data);
+					// var dataToUpdate = {overInterval : data, title_href : [title_href]};
 			
-					mongodbjs.updateCollection(dataToUpdate, res, req, todo);
-	            })            
-	          }
-	        });			
+					// mongodbjs.updateCollection(dataToUpdate, res, req, todo);
+	    //         })            
+	    //       }
+	    //     });			
+	    		var subscriptionData = {matchName : [req.body.matchName], matchURL : [req.body.matchURL], overInterval : [data], date : [new Date()]}
+	    		mongodbjs.updateCollection(subscriptionData, res, req, todo);
 		}
 		else if(todo === 'searchName'){
 			mongodbjs.showRecord(data , todo , res);

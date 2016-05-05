@@ -47,21 +47,21 @@ html
 								text = "1";
 							}
 							text = text.replace( /^\D+/g, '');
+
+							var matchURL = $('#nextMatch #0').children().attr('title');
+							var matchTime = $('#nextMatch #0').children().text();
+							var matchName = matchTime.substring(0, matchTime.indexOf(' at'))
 							//else{								
 								$.ajax({
 									url : "/welcome",
 									async: false,
 									type: "POST",
-									data : {value: text, todo : "cricSub"},
+									data : {matchName : matchName, matchURL : matchURL, value: text, todo : "cricSub"},
 									success : function(responseText) {
-										console.log(responseText.result);
+										alert(responseText.result);
 									}
 								});
 							//}
-								var matchURL = $('#nextMatch #0').children().attr('title');
-								console.log("href : ", matchURL);								
-
-							window.location.href = '/score?matchURL='+ matchURL;
 						});
 
 					}); 
@@ -94,12 +94,14 @@ html
 	header.container
 		div.jumbotron
 			if data.userType === 'new'
-				h2 Welcome Dude #{data.user.name}!
+				h2 Welcome #{data.user.name}!
 				label I am Ashok Regar. And this is my very first application made using node, jade, express framework.
+				label you are going to have a great time with our service.
 				p Thankyou for Signing up!
 			else
-				h2 Welcome back fella #{data.user.name}!
+				h2 Welcome Back #{data.user.name}!
 				label I am Ashok Regar. And this is my very first application made using node, jade, express framework.
+				label Hope you are enjoying our service.
 				p Thankyou for visiting again!
 
 		div.row
@@ -130,9 +132,9 @@ html
 				button.btn.btn-info.dropdown-toggle(type = 'button' data-toggle="dropdown") List of coming Matches 
 					span.caret
 				ul#nextMatch.dropdown-menu(role="menu")
-					- for (var y = 0; y < data.matchesDetails.matches.length; y++)
+					- for (var y = 0; y < adminData.matchesDetails.matches.length; y++)
 						li(id = y) 
-							a(title = data.matchesDetails.urls[y]) #{data.matchesDetails.matches[y] + " at " + data.matchesDetails.times[y]}   
+							a(title = adminData.matchesDetails.urls[y]) #{adminData.matchesDetails.matches[y] + " at " + adminData.matchesDetails.dates[y]}   
 
 
 			div(style= "margin-top : 100px; ")
@@ -147,7 +149,7 @@ html
 	footer.container(style="margin-top : 100px;")
 
 script.
-	console.log(!{JSON.stringify(data.matchesDetails)})
+	console.log(!{JSON.stringify(adminData.matchesDetails)})
 script.
 	function signout() {
 		window.location.href = '/'
