@@ -4,6 +4,8 @@ var express = require('express'),
 favicon = require('serve-favicon'),
 jade = require('jade'),
 path = require('path'),
+ipaddress = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1",
+port = process.env.OPENSHIFT_NODEJS_PORT || 4444,
 app = express(),
 bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
@@ -121,7 +123,7 @@ app.get('*', function(req, res) {
     });
 });
 
-app.listen(4444);
+app.listen(port, ipaddress);
 console.log('Server is Up and Running at Port : ' + 4444);
 
 module.exports = app;
