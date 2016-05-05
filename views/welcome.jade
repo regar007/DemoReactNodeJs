@@ -130,7 +130,7 @@ html
 				button.btn.btn-info.dropdown-toggle(type = 'button' data-toggle="dropdown") List of coming Matches 
 					span.caret
 				ul#nextMatch.dropdown-menu(role="menu")
-					- for (var y = 0; y < adminData.matchesDetails.matches.length; y++)
+					- for (var y = 0; y < 10; y++)
 						li(id = y) 
 							a(title = adminData.matchesDetails.urls[y]) #{adminData.matchesDetails.matches[y] + " at " + adminData.matchesDetails.dates[y]}   
 

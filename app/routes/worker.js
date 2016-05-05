@@ -81,7 +81,7 @@ async.series([
 
 			queue.create('IPL_SCORE', {
 			      jobId: urlCricbuzzIPL
-		        }).delay(30000).priority('high').save( function(err){
+		        }).delay(40000).priority('high').save( function(err){
 		       		if( !err ) console.log("created job for ipl ");
 				});
 		});
