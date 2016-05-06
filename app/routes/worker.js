@@ -76,21 +76,28 @@ async.series([
 		console.log("daysRemain : "+ daysRemain+", hrRemain : "+ hrRemain+", minElapsed : "+ minElapsed + ", timeInMili : "+ timeInMili);
 
 		queue.process('IPL_SCORE', function(job, done){
-
+			
 			score.sendIPLScore(job.data.jobId, admin.currMatch.ipl.name, done);
-
+			console.log("--------------------------------", admin.currOver);
+			if(admin.currOver > 20){
+				console.log("sent scores for the IPL Match################")
+				admin.currOver = 0;
+				done();
+				return;
+			}
 			queue.create('IPL_SCORE', {
 			      jobId: urlCricbuzzIPL
-		        }).delay(40000).priority('high').save( function(err){
-		       		if( !err ) console.log("created job for ipl ");
+		        }).delay(30000).priority('high').save( function(err){
+		       		if( !err ) console.log("created crawling task for #####IPL");
 				});
 		});
 
 		if(timeInMili > 0){
+			admin.currOver = 1;
 			queue.create('IPL_SCORE', {
 			      jobId: urlCricbuzzIPL
-		        }).priority('high').save( function(err){
-		       if( !err ) console.log("started job for ipl ");
+		        }).delay(timeInMili).priority('high').save( function(err){
+		       if( !err ) console.log("created crawling task for #####IPL");
 			});
 		callback(null, 'two');
 		}

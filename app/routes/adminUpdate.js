@@ -2,9 +2,12 @@ var request = require('request');
 var cheerio = require('cheerio');
 var mongodbjs = require('../routes/mongodb.js');
 var currMatch = {ipl : {name : '', url : '', date : ''}};
+var currOver = 0;
 
 module.exports = {
-	currMatch : currMatch, 
+	currMatch : currMatch,
+
+	currOver : currOver, 
 
 	updateAdminIPLUrls : function(job, done){
 		var urlCricbuzzIPL = 'http://www.cricbuzz.com/cricket-series/2430/indian-premier-league-2016/matches';

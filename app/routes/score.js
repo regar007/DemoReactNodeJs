@@ -1,7 +1,8 @@
 var request = require('request');
 var cheerio = require('cheerio');
 var sms = require('../routes/sms.js');
-var currOver = 1; //intial 1
+var worker = require('../routes/worker.js');
+var admin = require('../routes/adminUpdate.js');
 var secondInning = false; //intial false
 
 module.exports = {
@@ -106,16 +107,17 @@ module.exports = {
                 	_over = parseInt(battinTeam.substring(battinTeam.indexOf('(')+1, battinTeam.indexOf('Ovs)')));
                 }
 
-        		console.log("over current##################### ", currOver, " : ", _over);
-                if(_over === currOver){
+	        		console.log("over current##################### ", admin.currOver, " : ", _over);
+	            if(_over === currOver){
+					console.log("sendin sms for over ########", admin.currOver);
 					sms.iplSMSJobs(msg, url);
-					currOver++;
-					if(currOver > 20){
-						currOver = 1;
+						admin.currOver++;
+						if(admin.currOver > 20){
+							admin.currOver = 1;
 					}
             }
 
-				done();
+				done(null, 20);
 			}
         });
  //     },  5000);  

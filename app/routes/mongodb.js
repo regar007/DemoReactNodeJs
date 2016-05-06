@@ -15,8 +15,8 @@ var init = false;
  	  if (err) {
  	    console.log('Unable to connect to the mongoDB server. Error:', err);
  	  } else {
-// 	  	var users = db.collection('users'); 
-// 	  	users.remove();
+ 	  	var users = db.collection('users'); 
+ 	  	users.remove();
 	  	var admin = db.collection('admin'); 
 	  	admin.remove();
  	  }
