@@ -16,7 +16,7 @@ var init = false;
  	    console.log('Unable to connect to the mongoDB server. Error:', err);
  	  } else {
  	  	var users = db.collection('users'); 
- 	  	users.remove();
+// 	  	users.remove();
 	  	var admin = db.collection('admin'); 
 	  	admin.remove();
  	  }
@@ -59,9 +59,12 @@ module.exports = {
 			}
 			else if(todo === 'cricSub'){
 				query = {$set: {'subscription.cricSub.matchName' : userdata.matchName, 'subscription.cricSub.matchURL' : userdata.matchURL, 'subscription.cricSub.date' : userdata.date, 'subscription.cricSub.overInterval' : userdata.overInterval, 'subscription.cricSub.noOfMatches' : 1}};
-			}else if(todo == 'IPL'){
+			}else if(todo === 'IPL'){
 				username = 'regar007';
 				query = {$set: {'subscription.iplSub.matchesNames' : userdata.matches, 'subscription.iplSub.matchesURL' : userdata.urls, 'subscription.iplSub.matchesDates' : userdata.dates}};
+			}else if(todo === 'SERIES'){
+				username = 'regar007';
+				query = {$set: {'subscription.series' : userdata.series}};
 			}
 
 //			console.log("query : ", query)
@@ -70,7 +73,10 @@ module.exports = {
 			    console.log(err);
 			  } else if (numUpdated) {
 			  	isUpdated = true;
-			    console.log('Updated Successfully %d document(s).', numUpdated);
+			    if(todo === 'SERIES'){
+				    console.log('Series Updated Successfully document(s).');
+              		res(null, 'five');
+			    }
 			  } else {
 			    console.log('No document found with defined "find" criteria!');
 			  }
@@ -126,9 +132,11 @@ module.exports = {
 		    	db.collection('admin').find(query).toArray(function(err, result){
 		    		if(!err){
 						console.log("Admin : ",result[0]);
-		    			var details = result[0].subscription.iplSub;
-		    			adminData.matchesDetails = {matches : details.matchesNames , dates : details.matchesDates, urls : details.matchesURL};
-		    		}
+						if(result[0]){
+		    				var details = result[0].subscription.iplSub;
+		    				adminData.matchesDetails = {matches : details.matchesNames , dates : details.matchesDates, urls : details.matchesURL};
+						}
+					}
 		    	});
 				var username = req.session.userName.substring(0, req.session.userName.indexOf('('));
 				console.log(username);
@@ -141,6 +149,31 @@ module.exports = {
 		    }
 		    else if(todo === 'sms'){
 		    	query = {'subscription.cricSub.matchURL.0' : data};
+		    }else if(todo === 'CRICDATA' || todo === 'GETFIXTURE'){
+		    	query = {'secret.username' : 'regar007'};
+		    	db.collection('admin').find(query).toArray(function(err, result){
+		    		if(!err){
+						console.log("Admin : ",result[0]);
+						if(result[0]){
+							if(todo === 'CRICDATA'){
+								for(var k = 1; k < result[0].subscription.series.length; k++){
+									data.push({'name' : result[0].subscription.series[k].name});
+								}
+							}else if(todo === 'GETFIXTURE'){
+								for(var k = 1; k < result[0].subscription.series.length; k++){
+									if(result[0].subscription.series[k].name && result[0].subscription.series[k].name === req){
+										data = result[0].subscription.series[k].matches;
+										break;
+									}
+								}
+							}
+						}else{
+							
+							data = [];
+						}
+		    			res.json(data);
+					}
+		    	});
 		    }
 
 		    console.log("query :" , query);
@@ -176,13 +209,13 @@ module.exports = {
 		      	console.log('id not found');
 				if(todo === 'admin'){
 		      		data._id = query._id;
-					saveMongo(data, todo);
+					saveMongo(data, res, todo);
 				}
 		      	else if(todo === 'signup'){
 		      		data._id = query._id;
 			        req.session.userName = data.secret.username+ "("+data.name+")"+data.mob;
 			        console.log(req);
-					saveMongo(data, res);
+					saveMongo(data, res, null);
 				}
 				else if(todo === 'signin'){
 					res.redirect('/signin');
@@ -247,7 +280,7 @@ module.exports = {
 	}
 };
 
-var	saveMongo = function(loginData, res){
+var	saveMongo = function(loginData, res, req){
 		MongoClient.connect(url, function (err, db) {
 		  if (err) {
 		    console.log('Unable to connect to the mongoDB server. Error:', err);
@@ -257,7 +290,7 @@ var	saveMongo = function(loginData, res){
 
 		    // Get the documents collection
 		    var collection = db.collection('users');
-		    if(res === 'admin'){
+		    if(req === 'admin'){
 		    	collection = db.collection('admin');
 		    }
 
@@ -269,9 +302,11 @@ var	saveMongo = function(loginData, res){
 		        userExist = true;
 		      } else {
 		        console.log('Inserted %d documents into the "users" collection. The documents inserted with "_id" are:', result.length);
-		      	if(res !== 'admin')
+		      	if(req !== 'admin'){
 			      	res.redirect('/welcome?userType=new');
-
+		      	}else{
+			      	res(null, 'one');
+			    }
 		      }
 		      //Close connection
 		      db.close();

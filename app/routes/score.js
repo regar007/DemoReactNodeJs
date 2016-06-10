@@ -1,13 +1,16 @@
+var async = require('async');
 var request = require('request');
 var cheerio = require('cheerio');
 var sms = require('../routes/sms.js');
 var worker = require('../routes/worker.js');
 var admin = require('../routes/adminUpdate.js');
+var mongodb = require('../routes/mongodb');
+var currOverSet = false;
 var secondInning = false; //intial false
 
 module.exports = {
 
-	sendIPLScore : function(url, teams, done) {
+	sendIPLScore : function(url, teams, done, queue) {
 		console.log("sending IPL score...");
 		var msg = "";
 
@@ -15,9 +18,10 @@ module.exports = {
 		var count = 0; 
 		var firstInning = true;
 		var matchdata = {requirement : '', player1 : {name : '', runs : 0, balls : 0}, player2 : {name : '', runs : 0, balls : 0}, teamBatting : {name :'', total_score : '' }, teamBowling : {name :'', total_score : '' }};
-		var matchOver = false;
+		var matchEndedText = "";
 
 //        var score = setInterval(function(){
+		if(url)
         request(url, function(error, response, html){
             if(!error){
 	            var $ = cheerio.load(html);
@@ -26,9 +30,20 @@ module.exports = {
 	            //check if match over
 	            $('.cb-text-mom').each(function(i, element){
 	                var data = $(this);
-	                console.log("current : ", data.text());
-	                if(data.text() != ""){
-	                    matchOver = true;
+	                console.log("current :&&&&&&&&&&&&&&&&&&&&&&&& ", data.text());
+	                if(data.text() != "" && !admin.matchOver){
+	                    admin.matchOver = true;
+//	                    admin.currOver = 0;
+	                    matchEndedText = data.text();
+	                }
+	            }); 
+	            $('.cb-text-complete').each(function(i, element){
+	                var data = $(this);
+	                console.log("current :&&&&&&&&&&&&&&&&&&&&&&&& ", data.text());
+	                if(data.text() != "" && !admin.matchOver){
+	                    admin.matchOver = true;
+//	                    admin.currOver = 0;
+	                    matchEndedText = data.text();
 	                }
 	            }); 
 	           // $('.innings-1-score ').each(function(i, element){
@@ -88,8 +103,9 @@ module.exports = {
 				var full_score = JSON.stringify(matchdata);
 
 				msg = "IPL : "+ matchdata.teamBatting.name +" Vs "+ matchdata.teamBowling.name+", ";
-				msg = (matchdata.player1.name == "") ? "" : msg + "Batting : "+matchdata.player1.name+" [ Runs : "+ matchdata.player1.runs+", Balls : "+matchdata.player1.balls+" ] ";
-				msg = (matchdata.player2.name == "") ? "" : msg + "& "+ matchdata.player2.name +" [ Runs : "+ matchdata.player2.runs+", Balls : "+matchdata.player2.balls+" ], ";
+				msg = msg + ((admin.matchOver) ? matchEndedText : "");
+				msg = msg + ((matchdata.player1.name == "") ? "" : ("Batting : "+matchdata.player1.name +" [ Runs : "+ matchdata.player1.runs+", Balls : " +matchdata.player1.balls+" ] "));
+				msg = msg + ((matchdata.player2.name == "") ? "" : ("& "+ matchdata.player2.name +" [ Runs : "+ matchdata.player2.runs+", Balls : "+matchdata.player2.balls+" ], "));
 				msg = msg + matchdata.requirement; 
 
 				msg = msg.replace(/\u00A0/g,'');
@@ -101,23 +117,42 @@ module.exports = {
                 //check if over has finished
 
                 var battinTeam = matchdata.teamBatting.name;
+				var currOverFloat = battinTeam.substring(battinTeam.indexOf('(')+1, battinTeam.indexOf('Ovs)'));
+				if(currOverFloat % 1 === 0 && !currOverSet){
+					admin.currOver = parseInt(currOverFloat);
+					currOverSet = true;
+					console.log("Current Match Over set...... ", admin.currOver);
+				}
                 var _over = parseInt(battinTeam.substring(battinTeam.indexOf('(')+1, battinTeam.indexOf('Ovs)')));
                 if(secondInning){
   	               battinTeam = matchdata.teamBowling.name;
-                	_over = parseInt(battinTeam.substring(battinTeam.indexOf('(')+1, battinTeam.indexOf('Ovs)')));
+                	_over = 20 + parseInt(battinTeam.substring(battinTeam.indexOf('(')+1, battinTeam.indexOf('Ovs)')));
                 }
 
-	        		console.log("over current##################### ", admin.currOver, " : ", _over);
-	            if(_over === currOver){
-					console.log("sendin sms for over ########", admin.currOver);
-					sms.iplSMSJobs(msg, url);
-						admin.currOver++;
-						if(admin.currOver > 20){
-							admin.currOver = 1;
+	        		console.log("looking for over ", admin.currOver, " : and CURRENT over", _over);
+	            if(_over === admin.currOver || (admin.matchOver && admin.currOver != 0)){
+					console.log("SENDING sms for over ", admin.currOver, "matchOver ", admin.matchOver);
+//					sms.iplSMSJobs(msg, url, admin.currOver);
+					admin.currOver++;
+					if(admin.matchOver){
+						admin.currOver = 0;
 					}
-            }
-
-				done(null, 20);
+//					admin.matchOver = false;
+            	}
+		      if(admin.matchOver){
+		          console.log("score sent!");
+	//	          clearInterval(crawlInterval);
+		          admin.currOver = 1;
+		          admin.matchOver = false;
+		          secondInning = false;
+		          var timeInMilli = admin.matchTimeInMilli(admin.currMatch.ipl.url[1],admin.currMatch.ipl.date[1], admin.currMatch.ipl.name[1]);
+				queue.create('IPL_SCORE', {
+				      jobId: admin.currMatch.ipl.url[1]
+				    }).delay(timeInMilli).priority('high').save( function(err){
+				   if( !err ) console.log("Started Task for #####", admin.currMatch.ipl.name[1]);
+				});
+		       }
+		       done(null, 20);
 			}
         });
  //     },  5000);  

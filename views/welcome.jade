@@ -2,12 +2,32 @@
 html
 	head
 		title A Simple Node, Jade Driven Site!
-		link(rel = 'stylesheet',type="text/css", href = 'http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css')
-		script(src="libs/jquery.min.js")
-		link(rel="stylesheet" href="libs/jquery-ui.css")
-		script(src="libs/jquery-1.10.2.js")
-		script(src="libs/jquery-ui.js")
-		script(src='libs/bootstrap.min.js')
+		link(rel = 'stylesheet',type="text/css", href = 'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css')
+		link(rel = 'stylesheet',type="text/css", href = 'https://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css')
+		script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js")
+		script(src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.js")
+		script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js')
+		script(type='text/javascript').
+				console.log("getting cricket data");
+				$.ajax({
+					url : "/cricData",
+					async: true,
+					type: "GET",
+					data : { todo : "CRICDATA"},
+					success : function(responseText) {
+						console.log(responseText);
+						var series = $('#seriesUl')
+						$.each(responseText, function(i)
+						{
+						    var li = $('<li/>')
+						        .addClass('seriesli')
+						        .appendTo(series);
+						    var aa = $('<a/>')
+						        .text(responseText[i].name)
+						        .appendTo(li);
+						});
+					}
+				});
 		script(type='text/javascript').
 				$(document).ready(function(){
 					$(function() {
@@ -35,14 +55,23 @@ html
 							}
 						});
 						$("#overs li").click(function(event){
-							var text = $(this).text();
+							var text = $(this).text()+ ' overs will be sent.';
 							console.log(text);
-							$('#selected').text(text);
+							var div = $('#overs');
+							var btnCreated = $('.overSelected'); 
+							if(btnCreated.length === 0){
+							    var button = $('<button/>')
+							        .addClass('overSelected btn btn-default')
+							        .text(text)
+							        .appendTo(div);
+						    }else{
+						    	$('.overSelected').text(text);
+						    }
 						});
 						$("#subscribe").click(function(event){
-							var text = $('#selected').text();
+							var text = $('.overSelected').text();
 							console.log(text);
-							if(text.toString() == 'Select Overs'){
+							if(text.toString().replace(/ /g, "") === ''){
 								alert("You have not selected over interval, default is 1 over!");
 								text = "1";
 							}
@@ -51,17 +80,99 @@ html
 							var matchURL = $('#nextMatch #0').children().attr('title');
 							var matchTime = $('#nextMatch #0').children().text();
 							var matchName = matchTime.substring(0, matchTime.indexOf(' at'))
-							//else{								
-								$.ajax({
-									url : "/welcome",
-									async: false,
-									type: "POST",
-									data : {matchName : matchName, matchURL : matchURL, value: text, todo : "cricSub"},
-									success : function(responseText) {
-										alert(responseText.result);
+							$.ajax({
+								url : "/welcome",
+								async: false,
+								type: "POST",
+								data : {matchName : matchName, matchURL : matchURL, value: parseInt(text), todo : "cricSub"},
+								success : function(responseText) {
+									alert("Your subscription is " + responseText.result);
+									$('#subscribe button').removeClass('btn-default').addClass('btn-success').text('Unsubscribe');
+								}
+							});
+						});
+						$("body").on('click', 'li', function(event){
+							console.log(this);
+							var text = $(this).text();
+							var liitem = $(this).parent().children();
+							liitem.each(function(index,li) {
+								var liText = li.textContent;
+								if(text === liText){
+								    $(this).addClass('disabled');
+								}else{
+								    $(this).removeClass('disabled');
+								}
+							});							
+							
+						});
+						
+						$("body").on('click', 'li.seriesli', function(event){
+							var text = $(this).text();
+							console.log(text);
+							var div = $('#seriesDiv');
+							var btnCreated = $('.seriesSelected'); 
+							if(btnCreated.length === 0){
+							    var button = $('<button/>')
+							        .addClass('seriesSelected btn btn-default')
+							        .text(text)
+							        .appendTo(div);
+						    }else{
+						    	$('.seriesSelected').text(text);
+						    	$('.fixtureSelected').remove();
+						    }
+							$.ajax({
+								url : "/cricData",
+								async: false,
+								type: "GET",
+								data : {series : text.toString(), todo : "GETFIXTURE"},
+								success : function(responseText) {
+									console.log(responseText);
+									var div = $('#fixtureDiv')
+									
+									var ul = $('.fixtureUl');
+									ul.empty();
+									if(ul.length == 0){
+										ul = $('<ul/>')
+										.addClass('fixtureUl dropdown-menu')
+										.css({"margin-left" : "15px"})
+										.attr('role', 'menu')
+										.appendTo(div);
 									}
-								});
-							//}
+									$.each(responseText, function(i)
+									{
+										if(i > 10){
+											return;
+										}
+									    var li = $('<li/>')
+									        .addClass('fixtureli')
+									        .appendTo(ul);
+									    var aa = $('<a/>')
+									        .text(responseText[i].name)
+									        .appendTo(li);
+									});
+								}
+							});
+						});
+						$("body").on('click', 'li.fixtureli', function(event){
+							var text = $(this).text();
+							console.log(text);
+							var div = $('#fixtureDiv');
+							var btnCreated = $('.fixtureSelected'); 
+							if(btnCreated.length === 0){
+							    var button = $('<button/>')
+							        .addClass('fixtureSelected btn btn-default')
+							        .text(text)
+							        .appendTo(div);
+						    }else{
+						    	$('.fixtureSelected').text(text);
+						    }
+						});
+						$("#fixtureButton").click(function(event){
+							var text = $('.seriesSelected').text();
+							console.log(text);
+							if(text.toString() === ''){
+								alert("You have not selected any series, please select one!");
+							}
 						});
 
 					}); 
@@ -74,7 +185,7 @@ html
 						span.icon-bar
 						span.icon-bar
 						span.icon-bar
-					a.navbar-brand(href="/") OfflineSearch
+					a.navbar-brand(href="#") OfflineSearch
 				div.collapse.navbar-collapse#myNavbar
 					ul.nav.navbar-nav
 						li.active
@@ -90,9 +201,9 @@ html
 								span.glyphicon.glyphicon-user  Sign Up
 						li
 							a(href = "/signin")
-								span.glyphicon.glyphicon-log-in  Sign In
+								span.glyphicon.glyphicon-log-in  Sign Out
 	header.container
-		div.jumbotron
+		div
 			if data.userType === 'new'
 				h2 Welcome #{data.user.name}!
 				label I am Ashok Regar. You are going to have a great time with our service.
@@ -102,44 +213,46 @@ html
 				label I am Ashok Regar. Hope you are enjoying our service.
 				p Thankyou for visiting again!
 
-		div.row
-			div.col-sm-12(style="float: right;")
-				button.btn.btn-default.btn-primary(onclick="configure()", id = "configure") Configure your UPDATES!
-		div.row
-			div.col-sm-12(style="float: right; margin-top : 10px;")
-				if overInterval
-					button#subscribe.btn.btn-default.btn-success Subscribe for next match
-				else
-					button#subscribe.btn.btn-default.btn-primary Subscribe for next match
-				div#overs.btn-group
-					if overInterval
-						button#selected.btn.btn-success.dropdown-toggle(type = 'button' data-toggle="dropdown") One sms in #{overInterval}
-							span.caret
-					else						
-						button#selected.btn.btn-primary.dropdown-toggle(type = 'button' data-toggle="dropdown") Select Overs
-							span.caret
-					ul.dropdown-menu(role="menu")
-						li#0 
-							a Select Overs
-						- for (var x = 1; x < 11; x++)
-							li#x 
-								a One sms in #{x}
-				label &nbsp;Scores will be sent over this interval!
-		div.row
-			div.col-sm-12(style="float: right; margin-top : 10px;")
-				button.btn.btn-info.dropdown-toggle(type = 'button' data-toggle="dropdown") List of coming Matches 
-					span.caret
-				ul#nextMatch.dropdown-menu(role="menu")
-					- for (var y = 0; y < 10; y++)
-						li(id = y) 
-							a(title = adminData.matchesDetails.urls[y]) #{adminData.matchesDetails.matches[y] + " at " + adminData.matchesDetails.dates[y]}   
-
-
-			div(style= "margin-top : 100px; ")
-				form.form-horizontal
-					label.control-label.col-sm-3 Search for a friend's posts here OR use their twiiter name!:
-					div.col-sm-5
-						input.form-control.btn-info(type="text", id="searchName", placeholder="name", name = "name")
+		div.panel.panel-info(style = "margin-top : 10px;")
+			div.panel-heading Configure your news updates!
+			div.panel-body
+				div.row(style = "margin-top : 10px;")
+					div.col-sm-12
+						button.btn.btn-default.btn-primary(onclick="configure()", id = "configure", style="width : 200px") Configure your UPDATES!
+		div.panel.panel-info(style = "margin-top : 10px;")
+			div.panel-heading Subscribe for the ongoing cricket series!
+			div.panel-body
+				div.row(style = "margin-top : 10px;")
+					div#seriesDiv.col-md-12
+						button#seriesButton.btn.btn-info.dropdown-toggle(type = 'button' data-toggle="dropdown", style="width : 200px") Series
+							span.caret(style = "float : right")
+						ul#seriesUl.dropdown-menu(role="menu",style="margin-left: 15px;")
+				div.row(style = "margin-top : 10px;")
+					div#fixtureDiv.col-sm-12
+						button#fixtureButton.btn.btn-info.dropdown-toggle(type = 'button' data-toggle="dropdown", style="width : 200px") Fixtures
+							span.caret(style = "float : right")
+				div.row(style="margin-top : 10px;")
+					div.col-sm-12
+						div#overs.btn-group
+							button.btn.btn-info.dropdown-toggle(type = 'button' data-toggle="dropdown", style="width : 200px") Select Overs
+								span.caret(style = "float : right")
+							ul.dropdown-menu(role="menu")
+								- for (var x = 1; x < 11; x++)
+									li#x 
+										a One sms in #{x}
+				div.row(style= "margin-top : 10px;")
+					div.col-sm-12
+						div#subscribe.btn-group
+							if overInterval != 0
+								button.btn.btn-success(style="width : 200px") Subscribe for next match
+							else
+								button.btn.btn-default(style="width : 200px") Subscribe for next match
+		div.panel.panel-info(style = "margin-top : 10px;")
+			div.panel-heading Search for a registered friend's posts here!
+			div.panel-body
+				div(style= "margin-top : 10px;")
+					form.form-horizontal
+						input.form-control.btn-info(type="text", id="searchName", placeholder="name", name = "name", style="width : 200px")
 						if data.twitterFriend != ''
 							h3 No twitter user by #{data.twitterFriend}'s name! sorry! 
 

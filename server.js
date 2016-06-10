@@ -4,8 +4,8 @@ var express = require('express'),
 favicon = require('serve-favicon'),
 jade = require('jade'),
 path = require('path'),
-ipaddress = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1",
-port = process.env.OPENSHIFT_NODEJS_PORT || 4444,
+ipaddress = process.env.IP || "127.0.0.1",
+port = process.env.PORT || 4444,
 app = express(),
 bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
@@ -74,6 +74,7 @@ require('./app/routes/configure.js')(app);
 require('./app/routes/textbelt.js')(app);
 require('./app/routes/unirest.js')(app);
 require('./app/routes/crawler.js')(app);
+require('./app/routes/cricData.js')(app);
 
 
 // router.get('/', function(req, res){

@@ -2,7 +2,7 @@ var mongodbjs = require('../routes/mongodb.js');
 var url = require('url');
 var request = require('request');
 var cheerio = require('cheerio');
-
+var worker = require('../routes/worker');
 
 var MyApp = function(app){
 	app.get('/welcome', function(req, res){

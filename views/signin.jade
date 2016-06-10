@@ -2,12 +2,11 @@ doctype html
 html(lang="en")
 	head
 		title= pageTitle
-		link(rel = 'stylesheet',type="text/css", href = 'http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css')
-		script(src="libs/jquery.min.js")
-		link(rel="stylesheet" href="libs/jquery-ui.css")
-		script(src="libs/jquery-1.10.2.js")
-		script(src="libs/jquery-ui.js")
-		script(src='libs/bootstrap.min.js')
+		link(rel = 'stylesheet',type="text/css", href = 'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css')
+		link(rel = 'stylesheet',type="text/css", href = 'https://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css')
+		script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js")
+		script(src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.js")
+		script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js')
 
 	body
 		nav.navbar.navbar-inverse
@@ -30,26 +29,26 @@ html(lang="en")
 							a(href = "/signin")
 								span.glyphicon.glyphicon-log-in  Sign In
 		div.container
-			if !exist
-				h1 You're not authorised to view next page! Sorry!
-			h2 Please login or sign up!
-
-			form.form-horizontal(action="/signin", method="post")
-				div.form-group
-					label.control-label.col-sm-2(for="username") Username:
-					div.col-sm-10
-						input.form-control(type="username",id="username", placeholder="Username", name = "username")
-				div.form-group
-					label.control-label.col-sm-2(for="password") Password:
-					div.col-sm-10
-						input.form-control(type="password",id= "password", placeholder="Password", name="password")
-				div.form-group
-					div.col-sm-offset-2.col-sm-10
-						input.btn.btn-default(type="submit", value="Submit")
-
-			if exist
-				h1 Looks like you exist with us.
-				h2 Try login in! 
+			div.panel.panel-info(style = "margin-top : 10px;")
+				div.panel-heading Sign In to Configure your preferences!
+				div.panel-body
+					form.form-horizontal(action="/signin", method="post")
+						div.form-group
+							label.control-label.col-sm-2(for="username") Username:
+							div.col-sm-10
+								input.form-control(type="username",id="username", placeholder="Username", name = "username")
+						div.form-group
+							label.control-label.col-sm-2(for="password") Password:
+							div.col-sm-10
+								input.form-control(type="password",id= "password", placeholder="Password", name="password")
+						div.form-group
+							div.col-sm-offset-2.col-sm-10
+								input.btn.btn-default(type="submit", value="Submit")
+						if exist		
+							div.form-group
+								div.col-sm-offset-2.col-sm-10
+									div Looks like you exist with us.
+									div Try login in! 
 			
 
 script.

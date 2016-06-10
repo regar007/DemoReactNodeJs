@@ -2,13 +2,7 @@
 var mongoData = {name : '',mob : 0, age : '',twitterName: '',subscription : {cricSub : {matchName : [], matchURL : [], date : [], overInterval : [], noOfMatches : 0 }}, hashTag : [], schedule : {days : [], times : []}, secret : {username : '', password : ''}};
 var mongodbjs = require('../routes/mongodb.js');
 var crypto = require('crypto');
-
-//Add the Admin for keeping track of some data over the time
-var adminData = {name : 'Ashok',mob : 8124313034, age : 24,twitterName: '@ASHOKREGAR',subscription : {iplSub : {matchesNames : [],matchesURL : [] , matchesDates : [], overInterval : '', noOfMatches : 0 }}, hashTag : [], schedule : {days : [], times : []}, secret : {username : 'regar007', password : crypto.createHash('md5').update('Ashu@007').digest("hex")}};
-mongodbjs.findRecord(adminData, null, null, 'admin');
 var worker = require('../routes/worker.js');
-
-
 
 
 var MyApp = function(app){

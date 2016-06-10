@@ -35,7 +35,7 @@ var sendByPlivo = function(mob, msg, done){
 
 module.exports = {
 
-	iplSMSJobs : function(msg, url){
+	iplSMSJobs : function(msg, url, currOver){
 		console.log("in iplSMSJobs : ", url);		
 		async.series([
 			function(callback){
@@ -43,16 +43,19 @@ module.exports = {
 			}
 		],
 		function(err, results){
-			console.log("iplSMSJobs has length of ", results[0].length);
-			for(var i = 0; i < results[0].length; i++){		
-				queue.create('IPL_SMS', {
-					msg : msg,
-					mob : results[0][i].mob
-				}).priority('critical').save(function(err){
-				         if( !err ) console.log("started job for IPL_SMS are ", i);
-				});
+			if(!err){
+				console.log("iplSMSJobs has length of ", results[0].length);
+				for(var i = 0; i < results[0].length; i++){		
+					if(parseInt(currOver) % (parseInt(results[0][i].subscription.cricSub.overInterval)) === 0){
+						queue.create('IPL_SMS', {
+							msg : msg,
+							mob : results[0][i].mob
+						}).priority('critical').save(function(err){
+						         if( !err ) console.log("started job for IPL_SMS are ", i);
+						});
+					}
+				}
 			}
-
 		});
 	}
 }
