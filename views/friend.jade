@@ -7,6 +7,41 @@ html
 		script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js")
 		script(src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.js")
 		script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js')
+		script(type='text/javascript').
+				$(document).ready(function(){
+					$(function() {
+						var tweets = !{JSON.stringify(tweets)};
+						console.log("subscription : ", tweets[0] );
+
+						var ul = $('#posts');
+						ul.empty();
+						for(var i = 0, l = (tweets.length < 10) ? tweets.length : 10; i < l; i++)
+						{
+						    var li = $('<li/>')
+						        .addClass('fixtureli')
+						        .appendTo(ul);
+						    var aa = $('<a/>')
+						        .text(i + 1 + ': ' + tweets[i].text)
+						        .appendTo(li);
+						};
+						$("body").on('click', 'a.page', function(event){
+							var text = $(this).text();
+							var len = (parseInt(text) - 1 ) * 10;
+							console.log(text);
+							var ul = $('#posts');
+							ul.empty();
+							for(var i = len, l = (tweets.length < len + 10) ? tweets.length : (len + 10); i < l; i++)
+							{
+							    var li = $('<li/>')
+							        .addClass('fixtureli')
+							        .appendTo(ul);
+							    var aa = $('<a/>')
+							        .text(i + 1 + ': ' + tweets[i].text)
+							        .appendTo(li);
+							};
+						});
+					});
+				});
 	body
 		nav.navbar.navbar-inverse
 			div.container-fluid
@@ -27,28 +62,26 @@ html
 							a(href = "/welcome") Go Back
 					ul.nav.navbar-nav.navbar-right
 						li
-							a(href = "/signup")
-								span.glyphicon.glyphicon-user  Sign Up
-						li
 							a(href = "/signin")
-								span.glyphicon.glyphicon-log-in  Sign In
+								span.glyphicon.glyphicon-log-in  Sign Out
 	header.container
-		if tweets.length > 0
-			h1 Welcome to #{tweets[0].user.name}'s posts!
-		else
-			h1 #{name} does not have any tweets as of now!
-		div
-			ul.list-group.nav.nav-pills.nav-stacked(id="posts")
-				each val, index in tweets
-					li.list-group-item= index +1 + ': ' + val.text
-			div
-				ul.pagination
-					- for (var i = 0, l = (tweets.length % 10 == 0 && tweets.length >=10)? tweets.length/10 :tweets.length/10 + 1; i < l; i++) {
-						li
-							a(href="") #{i+1}
-					- }
+		div.panel.panel-info(style = "margin-top : 10px;")
+			div.panel-heading Welcome to #{name}'s posts!
+			div.panel-body
+				if tweets.length > 0
+					div
+						ul.list-group.nav.nav-pills.nav-stacked(id="posts")
+						div
+							ul.pagination
+								- for (var i = 0, l = (tweets.length % 10 == 0 && tweets.length >=10)? tweets.length/10 : (tweets.length/10 + 1); i < parseInt(l); i++) {
+									li
+										a.page(href="#") #{i+1}
+								- }
+				else
+					h1 #{name} does not have any tweets as of now!
 	footer.container
 		p Running on node with Express, Jade and Stylus!
 script.
-	console.log(!{JSON.stringify(tweets)})
+	console.log(!{JSON.stringify(tweets)});
+	
 

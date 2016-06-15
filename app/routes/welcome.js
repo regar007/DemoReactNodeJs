@@ -53,32 +53,11 @@ var MyApp = function(app){
 		var data = req.body.value;
 		var todo = req.body.todo;
 
-		if(todo === 'cricSub'){
-
-	     //get the crrent match url from cricbuzz
-	    //   var urlCricbuzzIPL = 'http://www.cricbuzz.com/cricket-series/2430/indian-premier-league-2016';
-	    //   request(urlCricbuzzIPL, function(error, response, html){
-	    //       if(!error){
-	    //         var $ = cheerio.load(html);
-	            
-	    //        $('#scag_content').filter(function(){
-	    //             var a = $(this).children().children().first();
-	    //             console.log(a.attr('title'));
-	    //             console.log(a.attr('href'));
-
-					// var title = a.attr('title').replace('Live Cricket Score of','') ;
-					// var href = a.attr('href');
-					// var title_href = title+"_"+href;
-					// console.log("title_href : ",title_href);
-					// console.log("overInterval : ",data);
-					// var dataToUpdate = {overInterval : data, title_href : [title_href]};
-			
-					// mongodbjs.updateCollection(dataToUpdate, res, req, todo);
-	    //         })            
-	    //       }
-	    //     });			
-	    		var subscriptionData = {matchName : [req.body.matchName], matchURL : [req.body.matchURL], overInterval : [data], date : [new Date()]}
+		if(todo === 'CRICSUB'){
+	    		var subscriptionData = {series : req.body.series, matchName : req.body.matchName, time: req.body.time, matchURL : req.body.matchURL, overInterval : data, date : new Date()}
 	    		mongodbjs.updateCollection(subscriptionData, res, req, todo);
+		}else if( todo === 'UNSUBCRIC'){
+	    		mongodbjs.updateCollection(null, res, req, todo);
 		}
 		else if(todo === 'searchName'){
 			mongodbjs.showRecord(data , todo , res);

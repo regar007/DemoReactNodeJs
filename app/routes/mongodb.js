@@ -56,9 +56,12 @@ module.exports = {
 			}
 			else if(todo === 'timeList'){
 				query = {$set: {'schedule.times' : userdata}};
-			}
-			else if(todo === 'cricSub'){
+			}else if(todo === 'cricSub'){
 				query = {$set: {'subscription.cricSub.matchName' : userdata.matchName, 'subscription.cricSub.matchURL' : userdata.matchURL, 'subscription.cricSub.date' : userdata.date, 'subscription.cricSub.overInterval' : userdata.overInterval, 'subscription.cricSub.noOfMatches' : 1}};
+			}else if(todo === 'CRICSUB'){
+				query = {$set: {'subscription.cricSub.series' : [{'seriesName' : userdata.series, 'url' : userdata.matchURL, 'name' : userdata.matchName, 'time' : userdata.time, 'over' : userdata.overInterval}]}};
+			}else if(todo === 'UNSUBCRIC'){
+				query = {$set: {'subscription.cricSub.series' : []}};
 			}else if(todo === 'IPL'){
 				username = 'regar007';
 				query = {$set: {'subscription.iplSub.matchesNames' : userdata.matches, 'subscription.iplSub.matchesURL' : userdata.urls, 'subscription.iplSub.matchesDates' : userdata.dates}};
@@ -73,19 +76,25 @@ module.exports = {
 			    console.log(err);
 			  } else if (numUpdated) {
 			  	isUpdated = true;
-			    if(todo === 'SERIES'){
-				    console.log('Series Updated Successfully document(s).');
-              		res(null, 'five');
-			    }
 			  } else {
 			    console.log('No document found with defined "find" criteria!');
 			  }
 
-			  if(req != 'adminUpdate'){
-			 	 if(isUpdated)
-			  		res.json({result : 'success'});
-			  	else
-			  		res.json({result : 'failed'});
+ 			  if(isUpdated){
+				  if(todo === 'CRICSUB'){
+				  		res.json({result : 'Subscribed!', subStatus : true});
+				  }else if(todo == 'UNSUBCRIC'){
+				  		res.json({result : 'Unsubscribed!', subStatus : false});
+				  }else if(todo === 'IPL'){
+						res(null, 'IPL');	
+				  }else if(todo === 'SERIES'){
+					    console.log('Series Updated Successfully document(s).');
+						res(null, 'SERIES');	
+				  }else{
+				  		res.json({result : 'success'})
+				  }
+			 }else{
+		  		res.json({result : 'failed'});
 			  }
 
 			  //Close connection
@@ -133,8 +142,11 @@ module.exports = {
 		    		if(!err){
 						console.log("Admin : ",result[0]);
 						if(result[0]){
-		    				var details = result[0].subscription.iplSub;
-		    				adminData.matchesDetails = {matches : details.matchesNames , dates : details.matchesDates, urls : details.matchesURL};
+							// //IPL data
+		    	// 			var details = result[0].subscription.iplSub;
+		    	// 			adminData.matchesDetails = {matches : details.matchesNames , dates : details.matchesDates, urls : details.matchesURL};
+		    				//ongoing series data
+		    	//			adminData.series = result[0].subscription.series; 
 						}
 					}
 		    	});
@@ -148,7 +160,11 @@ module.exports = {
 		    	console.log("id: "+query._id);		    	
 		    }
 		    else if(todo === 'sms'){
-		    	query = {'subscription.cricSub.matchURL.0' : data};
+		    	if(req != null){
+		    		query = {'subscription.cricSub.series.0.url' : data};
+		    	}else{
+		    		query = {'subscription.cricSub.matchURL.0' : data};
+		    	}
 		    }else if(todo === 'CRICDATA' || todo === 'GETFIXTURE'){
 		    	query = {'secret.username' : 'regar007'};
 		    	db.collection('admin').find(query).toArray(function(err, result){
@@ -180,7 +196,7 @@ module.exports = {
 		    
 			collection.find(query).toArray(function (err, result) {
 		      if (err) {
-		        console.log(err);
+		        console.log("error: ",err);
 		      } else if (result.length) {
 		        console.log('Found:', result[0].secret.username);
 
@@ -198,7 +214,9 @@ module.exports = {
 				}
 				else if(todo === 'getPreferences'){
 					console.log('user data : ', result[0]);
-					res.render('welcome', {data : data, adminData : adminData, title_href : result[0].subscription.cricSub.matchURL, overInterval : result[0].subscription.cricSub.overInterval, noOfMatches: result[0].subscription.cricSub.noOfMatches});
+					//for ipl 
+					//res.render('welcome', {data : data, adminData : adminData, title_href : result[0].subscription.cricSub.matchURL, overInterval : result[0].subscription.cricSub.overInterval, noOfMatches: result[0].subscription.cricSub.noOfMatches});
+					res.render('welcome', {data : data, subscription : result[0].subscription.cricSub.series});
 				}
 				else if(todo == 'sms'){
 					//res is callback here

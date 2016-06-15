@@ -67,7 +67,7 @@ html
 							daysList = [];
 							var text = $(this).text();
 							console.log(text);
-							$("#day-outer div ul").append('<li id = "item" title="Click to REMOVE"><a>#'+text+'</a></li>');
+							$("#day-outer div ul").append('<li><a>#'+text+'</a><span id = "item" title="Click to REMOVE" style = "color : red;"> x</span></li>');
 
 							$("#day-outer div ul li a").each(function(){
 								if($(this).children().size() > 0){return true;}
@@ -85,14 +85,14 @@ html
 							});
 						});
 						$("#day-list").on("click" , "#item", function(e){
-							var val = $(this).text();
+							var val = $(this).parent().find('a').first().text();
 							for(var i =0, l = daysList.length; i < l; i++){
 								if(daysList[i] == val){
 									daysList.splice(i, 1);
 									break;
 								}
 							}
-							$(this).remove();
+							$(this).parent().remove();
 							console.log(daysList);
 							$.ajax({
 								url : "/configure",
@@ -171,90 +171,98 @@ html
 								a(href = "/welcome") Go Back
 						ul.nav.navbar-nav.navbar-right
 							li
-								a(href = "/signup")
-									span.glyphicon.glyphicon-user  Sign Up
-							li
 								a(href = "/signin")
-									span.glyphicon.glyphicon-log-in  Sign In
+									span.glyphicon.glyphicon-log-in  Sign Out
 			header.container
-				div.jumbotron
+				div
 					h2 Hi #{user.name}! 
 					lable Welcome to the configuration page. Here you create your own list of interests and get updates from time to time on your mobile! 
-				div.raw
-					div.col-sm-4
-						button.btn.btn-Info.dropdown-toggle.form-control(type="button" id="feed" onClick="smsCumUpdate(this)" data-toggle="dropdown")
-							span(data-bind="label") See My Updates&nbsp;
-					div.col-sm-4
-					div.col-sm-4
-						button.btn.btn-Info.dropdown-toggle.form-control(type="button" name=user.mob id="sms" onClick="smsCumUpdate(this)" data-toggle="dropdown")
-							span(data-bind="label") Send Me Updates&nbsp;
+				div.panel.panel-info(style = "margin-top : 10px;")
+					div.panel-heading To see a sample of updates you are going to get, click bellow option!
+					div.panel-body
+						div.raw
+							div.col-sm-4
+								button.btn.btn-Info.dropdown-toggle.form-control(type="button" id="feed" onClick="smsCumUpdate(this)" data-toggle="dropdown")
+									span(data-bind="label") See My Updates&nbsp;
+							div.col-sm-4
+							div.col-sm-4
+								button.btn.btn-Info.dropdown-toggle.form-control(type="button" name=user.mob id="sms" onClick="smsCumUpdate(this)" data-toggle="dropdown")
+									span(data-bind="label") Send Me Updates&nbsp;
 				
-				div(style="margin-top : 8%").raw
-					div.col-sm-4
-						label.label.label-default Choice of Topic
-					div.col-sm-4
-						label.label.label-default Choice of Day
-					div.col-sm-4
-						label.label.label-default Choice of Time 
+				div.panel.panel-info(style = "margin-top : 10px;")
+					div.panel-heading Schedule your news updates!
+					div.panel-body
+						div.panel.panel-info.col-sm-4
+							div.panel-body
+								div.raw
+									div.col-sm-12
+										label Choice of Topic
+									div.col-sm-12
+										Input.form-control.btn-default(type="text", id="topic", placeholder="Topic of Interest", name = "topic" )
+									div.col-sm-12
+										div(id="menu-outer")
+											div( class = "table")
+												ul#horizontal-list
+													if user.hashTag && user.hashTag.length
+														each item in user.hashTag
+															li#item 
+																a(title="Click to REMOVE") #{item}
 
-				div(style="margin-top : 10%").raw
-					div.col-sm-4
-						Input.btn.btn-primary(type="text", id="topic", placeholder="Topic of Interest", name = "topic" )
-					div.col-sm-4
-						div.btn-group
-							button.btn.btn-primary(type='button' data-toggle="dropdown") Select Day&nbsp;
-							button.btn.btn-primary.dropdown-toggle(type = 'button' data-toggle="dropdown")
-								span.caret(style="height : 20px")
-							ul#days.dropdown-menu(role="menu")
-								li#item
-									a Monday
-								li#item
-									a Tuesday
-								li#item
-									a Wednesday
-								li#item
-									a Thursday
-								li#item
-									a Friday
-								li#item
-									a Saturday
-								li.divider
-								li#item
-									a Weekly
-								li#item
-									a Monthly
-					div.col-sm-4
-						Input.btn.btn-primary(type="text", id="time", placeholder="Time (Hour:AM/PM)", name = "time" )
-
-				div(style="margin-top : 15%").raw
-					div.col-sm-4
-						div(id="menu-outer")
-							div( class = "table")
-								ul#horizontal-list
-									if user.hashTag && user.hashTag.length
-										each item in user.hashTag
-											li#item 
-												a(title="Click to REMOVE") #{item}
-
-					div.col-sm-4
-						div.col-xs-2
-							div#day-outer(style="margin-left :-20%")
-								div( class = "table")
-									ul#day-list(style="margin-left :-20%")
-										if user.schedule.days && user.schedule.days.length
-											each item in user.schedule.days
-												li#item 
-													a(title="Click to REMOVE") #{item}
-
-					div.col-sm-4
-						div.col-xs-2
-							div#time-outer(style="margin-left :-20%")
-								div( class = "table")
-									ul#time-list
-										if user.schedule.times && user.schedule.times.length
-											each item in user.schedule.times
-												li#item 
-													a(title="Click to REMOVE") #{item}
+						div.panel.panel-info.col-sm-4
+							div.panel-body
+								div.raw
+									div.col-sm-12
+										label Choice of Day
+									div.col-sm-12
+										div.btn-group
+											button.form-control.btn-primary(type='button' data-toggle="dropdown" ) Select Day&nbsp;
+												span.caret
+											ul#days.dropdown-menu(role="menu")
+												li#item
+													a Monday
+												li#item
+													a Tuesday
+												li#item
+													a Wednesday
+												li#item
+													a Thursday
+												li#item
+													a Friday
+												li#item
+													a Saturday
+												li.divider
+												li#item
+													a Weekly
+												li#item
+													a Monthly
+									div.col-sm-12
+										div.col-xs-12
+											div#day-outer
+												div( class = "table")
+													ul#day-list
+														if user.schedule.days && user.schedule.days.length
+															each item in user.schedule.days
+																li 
+																	a #{item}
+																		span#item(title="Click to REMOVE" style = "color : red;") &nbsp x
+			
+						div.panel.panel-info.col-sm-4
+							div.panel-body
+								div.col-sm-12
+									label Choice of Time 
+								div.col-sm-12
+									Input.form-control.btn-default(type="text", id="time", placeholder="Time (Hour:AM/PM)", name = "time" )
+									div.col-sm-12
+										div.col-xs-2
+											div#time-outer(style="margin-left :-20%")
+												div( class = "table")
+													ul#time-list
+														if user.schedule.times && user.schedule.times.length
+															each item in user.schedule.times
+																li#item 
+																	a(title="Click to REMOVE") #{item}
+		
+		
 
 
 

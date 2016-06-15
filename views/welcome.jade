@@ -15,7 +15,7 @@ html
 					type: "GET",
 					data : { todo : "CRICDATA"},
 					success : function(responseText) {
-						console.log(responseText);
+						//console.log(responseText);
 						var series = $('#seriesUl')
 						$.each(responseText, function(i)
 						{
@@ -54,10 +54,10 @@ html
 								});
 							}
 						});
-						$("#overs li").click(function(event){
+						$("body").on('click', 'li.overli', function(event){
 							var text = $(this).text()+ ' overs will be sent.';
 							console.log(text);
-							var div = $('#overs');
+							var div = $('#overDiv');
 							var btnCreated = $('.overSelected'); 
 							if(btnCreated.length === 0){
 							    var button = $('<button/>')
@@ -65,39 +65,63 @@ html
 							        .text(text)
 							        .appendTo(div);
 						    }else{
+							    $('#subButton').text('Update Subscription');
 						    	$('.overSelected').text(text);
 						    }
 						});
 						$("#subscribe").click(function(event){
-							var text = $('.overSelected').text();
-							console.log(text);
-							if(text.toString().replace(/ /g, "") === ''){
-								alert("You have not selected over interval, default is 1 over!");
-								text = "1";
+							var data = {};
+							console.log($(this).text());
+							if($(this).text() === 'Subscribe' || $(this).text() === 'Update Subscription'){
+								var valiated = true;
+								var match = $('.fixtureSelected').text();
+								if(match === ''){
+									alert('Please provide match details!');
+									return;
+								}
+								var over = $('.overSelected').text();
+								if(over.toString().replace(/ /g, "") === ''){
+									alert("Please choose a over");
+									//over = "1";
+									return;
+								}
+								over = over.replace( /^\D+/g, '');
+	
+								var series = $('.seriesSelected').text();
+								var url = $('.fixtureSelected').attr('name');
+								var time = $('.fixtureSelected').attr('title');
+								console.log(series, match, url, time, over);
+								data = {series : series, matchName : match, matchURL : url, time : time, value: parseInt(over), todo : "CRICSUB"};
+							}else{
+								data = {todo : 'UNSUBCRIC'};
 							}
-							text = text.replace( /^\D+/g, '');
-
-							var matchURL = $('#nextMatch #0').children().attr('title');
-							var matchTime = $('#nextMatch #0').children().text();
-							var matchName = matchTime.substring(0, matchTime.indexOf(' at'))
 							$.ajax({
 								url : "/welcome",
 								async: false,
 								type: "POST",
-								data : {matchName : matchName, matchURL : matchURL, value: parseInt(text), todo : "cricSub"},
-								success : function(responseText) {
-									alert("Your subscription is " + responseText.result);
-									$('#subscribe button').removeClass('btn-default').addClass('btn-success').text('Unsubscribe');
+								data : data,
+								success : function(response) {
+									alert("Your are " + response.result);
+									if(response.subStatus){
+										$('#subscribe button').removeClass('btn-default').addClass('btn-success').text('Unsubscribe');
+									}else{
+										$('#subscribe button').removeClass('btn-success').addClass('btn-default').text('Subscribe');
+										$('.seriesSelected').remove();
+										$('.fixtureSelected').remove();
+										$('.fixtureUl').remove();
+										$('.overSelected').remove();
+										$('body li').each(function(index,li) {
+										    $(this).removeClass('disabled');
+										});							
+									}
 								}
 							});
 						});
 						$("body").on('click', 'li', function(event){
 							console.log(this);
 							var text = $(this).text();
-							var liitem = $(this).parent().children();
-							liitem.each(function(index,li) {
-								var liText = li.textContent;
-								if(text === liText){
+							$(this).parent().children().each(function(index,li) {
+								if(text === li.textContent){
 								    $(this).addClass('disabled');
 								}else{
 								    $(this).removeClass('disabled');
@@ -117,8 +141,10 @@ html
 							        .text(text)
 							        .appendTo(div);
 						    }else{
+							    $('#subButton').text('Update Subscription');
 						    	$('.seriesSelected').text(text);
 						    	$('.fixtureSelected').remove();
+						    	$('.overSelected').remove();
 						    }
 							$.ajax({
 								url : "/cricData",
@@ -147,6 +173,8 @@ html
 									        .addClass('fixtureli')
 									        .appendTo(ul);
 									    var aa = $('<a/>')
+									    	.attr('name', responseText[i].url)
+									    	.attr('title', responseText[i].time)
 									        .text(responseText[i].name)
 									        .appendTo(li);
 									});
@@ -154,17 +182,23 @@ html
 							});
 						});
 						$("body").on('click', 'li.fixtureli', function(event){
-							var text = $(this).text();
-							console.log(text);
+							var ele = $(this);
+							console.log(ele.find('a'));
 							var div = $('#fixtureDiv');
 							var btnCreated = $('.fixtureSelected'); 
 							if(btnCreated.length === 0){
 							    var button = $('<button/>')
 							        .addClass('fixtureSelected btn btn-default')
-							        .text(text)
+							        .attr('name', ele.find('a').attr('name'))
+							        .attr('title', ele.find('a').attr('title'))
+							        .text(ele.text())
 							        .appendTo(div);
 						    }else{
-						    	$('.fixtureSelected').text(text);
+							    $('#subButton').text('Update Subscription');
+						    	$('.fixtureSelected')
+							        .attr('name', ele.find('a').attr('name'))
+							        .attr('title', ele.find('a').attr('title'))
+							        .text(ele.text());
 						    }
 						});
 						$("#fixtureButton").click(function(event){
@@ -172,6 +206,37 @@ html
 							console.log(text);
 							if(text.toString() === ''){
 								alert("You have not selected any series, please select one!");
+							}
+						});
+						$("#overButton").click(function(event){
+							var text = $('.fixtureSelected').text();
+							console.log(text);
+							if(text.toString() === ''){
+								$('.overUl').remove();
+								alert("You have not selected any fixture, please select one!");
+								return;
+							}else{
+								var div = $('#overDiv')
+								
+								var ul = $('.overUl');
+								ul.empty();
+								if(ul.length == 0){
+									ul = $('<ul/>')
+									.addClass('dropdown-menu')
+									.addClass('overUl')
+									.attr('role', 'menu')
+									.appendTo(div);
+								}
+								for (var x = 1; x < 11; x++){
+									var li = $('<li/>')
+										.addClass('overli')
+										.attr('id', x)
+										.appendTo(ul);
+									var aa = $('<a/>')
+										.attr('id', x)
+										.text('One sms in '+ x)
+										.appendTo(li);
+								}
 							}
 						});
 
@@ -196,9 +261,6 @@ html
 						li.active
 							a(href = "/signin") Go Back
 					ul.nav.navbar-nav.navbar-right
-						li
-							a(href = "/signup")
-								span.glyphicon.glyphicon-user  Sign Up
 						li
 							a(href = "/signin")
 								span.glyphicon.glyphicon-log-in  Sign Out
@@ -227,32 +289,34 @@ html
 						button#seriesButton.btn.btn-info.dropdown-toggle(type = 'button' data-toggle="dropdown", style="width : 200px") Series
 							span.caret(style = "float : right")
 						ul#seriesUl.dropdown-menu(role="menu",style="margin-left: 15px;")
+						if(subscription.length > 0)
+							button.seriesSelected.btn.btn-default.dropdown-toggle(type = 'button' data-toggle="dropdown") #{subscription[0].seriesName}
 				div.row(style = "margin-top : 10px;")
 					div#fixtureDiv.col-sm-12
 						button#fixtureButton.btn.btn-info.dropdown-toggle(type = 'button' data-toggle="dropdown", style="width : 200px") Fixtures
 							span.caret(style = "float : right")
+						if(subscription.length > 0)
+							button.fixtureSelected.btn.btn-default.dropdown-toggle(type = 'button' data-toggle="dropdown", name = subscription[0].url, title = subscription[0].time) #{subscription[0].name}
 				div.row(style="margin-top : 10px;")
 					div.col-sm-12
-						div#overs.btn-group
-							button.btn.btn-info.dropdown-toggle(type = 'button' data-toggle="dropdown", style="width : 200px") Select Overs
+						div#overDiv.btn-group
+							button#overButton.btn.btn-info.dropdown-toggle(type = 'button' data-toggle="dropdown", style="width : 200px") Select Overs
 								span.caret(style = "float : right")
-							ul.dropdown-menu(role="menu")
-								- for (var x = 1; x < 11; x++)
-									li#x 
-										a One sms in #{x}
+						if(subscription.length > 0)
+							button.overSelected.btn.btn-default.dropdown-toggle(type = 'button' data-toggle="dropdown") One sms in #{subscription[0].over} overs will be sent.
 				div.row(style= "margin-top : 10px;")
 					div.col-sm-12
 						div#subscribe.btn-group
-							if overInterval != 0
-								button.btn.btn-success(style="width : 200px") Subscribe for next match
+							if subscription.length > 0
+								button#subButton.btn.btn-success(style="width : 200px") Unsubscribe
 							else
-								button.btn.btn-default(style="width : 200px") Subscribe for next match
+								button#subButton.btn.btn-default(style="width : 200px") Subscribe
 		div.panel.panel-info(style = "margin-top : 10px;")
 			div.panel-heading Search for a registered friend's posts here!
 			div.panel-body
 				div(style= "margin-top : 10px;")
 					form.form-horizontal
-						input.form-control.btn-info(type="text", id="searchName", placeholder="name", name = "name", style="width : 200px")
+						input.form-control.btn-default(type="text", id="searchName", placeholder="name", name = "name", style="width : 200px")
 						if data.twitterFriend != ''
 							h3 No twitter user by #{data.twitterFriend}'s name! sorry! 
 
@@ -260,7 +324,7 @@ html
 	footer.container(style="margin-top : 100px;")
 
 script.
-	console.log(!{JSON.stringify(adminData.matchesDetails)})
+	console.log(!{JSON.stringify(subscription)})
 script.
 	function signout() {
 		window.location.href = '/'

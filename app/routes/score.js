@@ -3,14 +3,15 @@ var request = require('request');
 var cheerio = require('cheerio');
 var sms = require('../routes/sms.js');
 var worker = require('../routes/worker.js');
-var admin = require('../routes/adminUpdate.js');
+var myMethods = require('../routes/myMethods');
+var matchType = ['odi'];
 var mongodb = require('../routes/mongodb');
 var currOverSet = false;
 var secondInning = false; //intial false
 
 module.exports = {
 
-	sendIPLScore : function(url, teams, done, queue) {
+	sendIPLScore : function(url, teams, done, queue, index) {
 		console.log("sending IPL score...");
 		var msg = "";
 
@@ -21,7 +22,7 @@ module.exports = {
 		var matchEndedText = "";
 
 //        var score = setInterval(function(){
-		if(url)
+		if(url && index)
         request(url, function(error, response, html){
             if(!error){
 	            var $ = cheerio.load(html);
@@ -30,18 +31,19 @@ module.exports = {
 	            //check if match over
 	            $('.cb-text-mom').each(function(i, element){
 	                var data = $(this);
-	                console.log("current :&&&&&&&&&&&&&&&&&&&&&&&& ", data.text());
-	                if(data.text() != "" && !admin.matchOver){
-	                    admin.matchOver = true;
+	                console.log("current : match completed long ago ", data.text());
+	                if(data.text() != "" && !myMethods.seriesOvers[index].matchOver){
+	                    myMethods.seriesOvers[index].matchOver = true;
 //	                    admin.currOver = 0;
 	                    matchEndedText = data.text();
 	                }
 	            }); 
 	            $('.cb-text-complete').each(function(i, element){
 	                var data = $(this);
-	                console.log("current :&&&&&&&&&&&&&&&&&&&&&&&& ", data.text());
-	                if(data.text() != "" && !admin.matchOver){
-	                    admin.matchOver = true;
+	                console.log("current : match completed ", data.text());
+	                    matchEndedText = data.text();
+	                if(data.text().toString().indexOf('reply') < 0 && data.text().toString().indexOf('filter') < 0 && ! myMethods.seriesOvers[index].matchOver){
+	                     myMethods.seriesOvers[index].matchOver = true;
 //	                    admin.currOver = 0;
 	                    matchEndedText = data.text();
 	                }
@@ -68,6 +70,7 @@ module.exports = {
              console.log("team2 : ", matchdata.teamBowling.name);
              if(matchdata.teamBowling.name.replace(/ /g, '') === 'InningsBreak'){
              	done();
+             	myMethods.seriesOvers[index].currOver = 1;
              	secondInning = true;
              	return;
              }
@@ -103,7 +106,7 @@ module.exports = {
 				var full_score = JSON.stringify(matchdata);
 
 				msg = "IPL : "+ matchdata.teamBatting.name +" Vs "+ matchdata.teamBowling.name+", ";
-				msg = msg + ((admin.matchOver) ? matchEndedText : "");
+				msg = msg + ((myMethods.seriesOvers[index].matchOver) ? matchEndedText : "");
 				msg = msg + ((matchdata.player1.name == "") ? "" : ("Batting : "+matchdata.player1.name +" [ Runs : "+ matchdata.player1.runs+", Balls : " +matchdata.player1.balls+" ] "));
 				msg = msg + ((matchdata.player2.name == "") ? "" : ("& "+ matchdata.player2.name +" [ Runs : "+ matchdata.player2.runs+", Balls : "+matchdata.player2.balls+" ], "));
 				msg = msg + matchdata.requirement; 
@@ -119,38 +122,38 @@ module.exports = {
                 var battinTeam = matchdata.teamBatting.name;
 				var currOverFloat = battinTeam.substring(battinTeam.indexOf('(')+1, battinTeam.indexOf('Ovs)'));
 				if(currOverFloat % 1 === 0 && !currOverSet){
-					admin.currOver = parseInt(currOverFloat);
+					 myMethods.seriesOvers[index].currOver = parseInt(currOverFloat);
 					currOverSet = true;
-					console.log("Current Match Over set...... ", admin.currOver);
+					console.log("Current Match Over set...... ",  myMethods.seriesOvers[index].currOver);
 				}
                 var _over = parseInt(battinTeam.substring(battinTeam.indexOf('(')+1, battinTeam.indexOf('Ovs)')));
                 if(secondInning){
   	               battinTeam = matchdata.teamBowling.name;
-                	_over = 20 + parseInt(battinTeam.substring(battinTeam.indexOf('(')+1, battinTeam.indexOf('Ovs)')));
+                	_over =  parseInt(battinTeam.substring(battinTeam.indexOf('(')+1, battinTeam.indexOf('Ovs)')));
                 }
 
-	        		console.log("looking for over ", admin.currOver, " : and CURRENT over", _over);
-	            if(_over === admin.currOver || (admin.matchOver && admin.currOver != 0)){
-					console.log("SENDING sms for over ", admin.currOver, "matchOver ", admin.matchOver);
-//					sms.iplSMSJobs(msg, url, admin.currOver);
-					admin.currOver++;
-					if(admin.matchOver){
-						admin.currOver = 0;
+	        	console.log("looking for over ",  myMethods.seriesOvers[index].currOver, " : and CURRENT over", _over);
+	            if(_over ===  myMethods.seriesOvers[index].currOver || ( myMethods.seriesOvers[index].matchOver &&  myMethods.seriesOvers[index].currOver != 0)){
+					console.log("SENDING sms for over ",  myMethods.seriesOvers[index].currOver, "matchOver ",  myMethods.seriesOvers[index].matchOver);
+					sms.iplSMSJobs(msg, url, index, myMethods.seriesOvers[index].currOver);
+					 myMethods.seriesOvers[index].currOver++;
+					if( myMethods.seriesOvers[index].matchOver){
+						 myMethods.seriesOvers[index].currOver = 0;
 					}
-//					admin.matchOver = false;
+//					 myMethods.seriesOvers[index].matchOver = false;
             	}
-		      if(admin.matchOver){
+		      if( myMethods.seriesOvers[index].matchOver){
 		          console.log("score sent!");
 	//	          clearInterval(crawlInterval);
-		          admin.currOver = 1;
-		          admin.matchOver = false;
+		           myMethods.seriesOvers[index].currOver = 1;
+		           myMethods.seriesOvers[index].matchOver = false;
 		          secondInning = false;
-		          var timeInMilli = admin.matchTimeInMilli(admin.currMatch.ipl.url[1],admin.currMatch.ipl.date[1], admin.currMatch.ipl.name[1]);
-				queue.create('IPL_SCORE', {
-				      jobId: admin.currMatch.ipl.url[1]
-				    }).delay(timeInMilli).priority('high').save( function(err){
-				   if( !err ) console.log("Started Task for #####", admin.currMatch.ipl.name[1]);
-				});
+		  //        var timeInMilli = myMethods.matchTimeInMilli( myMethods.seriesOvers[index].currMatch.ipl.url[1], myMethods.seriesOvers[index].currMatch.ipl.date[1],  myMethods.seriesOvers[index].currMatch.ipl.name[1]);
+				// queue.create('SERIES_SCORE', {
+				//       jobId:  myMethods.seriesOvers[index].currMatch.ipl.url[1]
+				//     }).delay(timeInMilli).priority('high').save( function(err){
+				//   if( !err ) console.log("Started Task for #####",  myMethods.seriesOvers[index].currMatch.ipl.name[1]);
+				// });
 		       }
 		       done(null, 20);
 			}

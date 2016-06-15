@@ -35,23 +35,23 @@ var sendByPlivo = function(mob, msg, done){
 
 module.exports = {
 
-	iplSMSJobs : function(msg, url, currOver){
+	iplSMSJobs : function(msg, url, index, currOver){
 		console.log("in iplSMSJobs : ", url);		
 		async.series([
 			function(callback){
-				mongodb.findRecord(url, callback, null, 'sms');
+				mongodb.findRecord(url, callback, index, 'sms');
 			}
 		],
 		function(err, results){
 			if(!err){
 				console.log("iplSMSJobs has length of ", results[0].length);
 				for(var i = 0; i < results[0].length; i++){		
-					if(parseInt(currOver) % (parseInt(results[0][i].subscription.cricSub.overInterval)) === 0){
+					if(parseInt(currOver) % (parseInt(results[0][i].subscription.cricSub.series[0].over)) === 0){
 						queue.create('IPL_SMS', {
 							msg : msg,
 							mob : results[0][i].mob
 						}).priority('critical').save(function(err){
-						         if( !err ) console.log("started job for IPL_SMS are ", i);
+						         if( !err ) console.log("started job for sending SERIES_SMS for user ", i);
 						});
 					}
 				}
