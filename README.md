@@ -9,7 +9,7 @@ As of now you can subscribe to one match in future for any series you want.
 
 The Application is build using bellow : 
  - The back-end uses [NodeJs](https://nodejs.org/) run-time environment written in [javascript]().
- - The front-end uses  [jade](jade-lang.com/) for html, [BootStrap](getbootstrap.com/) and [jQuery](https://jquery.com/).
+ - The front-end uses  [jade](jade-lang.com/) for html, [BootStrap](getbootstrap.com/) for responsive design and [jQuery](https://jquery.com/) for javascript in UI.
 
 The external tools used are : 
  - MongoDB to store user data.
