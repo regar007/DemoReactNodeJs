@@ -49,6 +49,11 @@ html(lang="en")
 								div.col-sm-offset-2.col-sm-10
 									div Looks like you exist with us.
 									div Try login in! 
+						if loginStatus == 'failed'		
+							div.form-group
+								div.col-sm-offset-2.col-sm-10
+									div(style = "color : red;") Looks like you don't exist with us.
+									div Please Sign up! 
 			
 
 script.

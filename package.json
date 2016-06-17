@@ -20,6 +20,7 @@
     "passport": "*",
     "passport-local": "*",
     "path": "*",
+    "phantom": "^2.1.5",
     "plivo": "*",
     "react": "^0.13.3",
     "redis": "*",

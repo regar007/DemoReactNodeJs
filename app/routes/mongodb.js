@@ -18,7 +18,7 @@ var init = false;
  	  	var users = db.collection('users'); 
 // 	  	users.remove();
 	  	var admin = db.collection('admin'); 
-	  	admin.remove();
+//	  	admin.remove();
  	  }
  	});
  	init = !init;
@@ -165,7 +165,7 @@ module.exports = {
 		    	}else{
 		    		query = {'subscription.cricSub.matchURL.0' : data};
 		    	}
-		    }else if(todo === 'CRICDATA' || todo === 'GETFIXTURE'){
+		    }else if(todo === 'CRICDATA' || todo === 'GETFIXTURE' || todo === 'SERIES'){
 		    	query = {'secret.username' : 'regar007'};
 		    	db.collection('admin').find(query).toArray(function(err, result){
 		    		if(!err){
@@ -182,9 +182,17 @@ module.exports = {
 										break;
 									}
 								}
+							}else if(todo === 'SERIES'){
+								//res is callback here
+								res(null, result[0].subscription.series);
+								return;
 							}
 						}else{
-							
+							if(todo === 'SERIES'){
+								//res is callback here
+								res(null, []);
+								return;
+							}
 							data = [];
 						}
 		    			res.json(data);
@@ -221,10 +229,12 @@ module.exports = {
 				else if(todo == 'sms'){
 					//res is callback here
 					res(null, result);
+				}else if(todo === 'admin'){
+					res(null, 'one');
 				}
 
 		      } else {
-		      	console.log('id not found');
+		      	console.log('person not found');
 				if(todo === 'admin'){
 		      		data._id = query._id;
 					saveMongo(data, res, todo);
@@ -236,7 +246,7 @@ module.exports = {
 					saveMongo(data, res, null);
 				}
 				else if(todo === 'signin'){
-					res.redirect('/signin');
+					res.render('signin', {loginStatus : 'failed'});
 				}
 		      }
 		      //Close connection

@@ -98,11 +98,11 @@ async.series([
 
 	//	if(timeInMili > 0){
 			admin.currOver = 1;
-			queue.create('IPL_SCORE', {
-			      jobId: urlCricbuzzIPL
-		        }).delay(timeInMili).priority('high').save( function(err){
-		       if( !err ) console.log("Started Task for #####", admin.currMatch.ipl.name[0]);
-			});
+			// queue.create('IPL_SCORE', {
+			//       jobId: urlCricbuzzIPL
+		 //       }).delay(timeInMili).priority('high').save( function(err){
+		 //      if( !err ) console.log("Started Task for #####", admin.currMatch.ipl.name[0]);
+			// });
 		callback(null, 'three');
 //		}
   }

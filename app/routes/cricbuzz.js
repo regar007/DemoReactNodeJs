@@ -1,6 +1,7 @@
 var async = require('async');
 var request = require('request');
 var cheerio = require('cheerio');
+var phantom = require('phantom');
 var mongodbjs = require('../routes/mongodb.js');
 var myMethods = require('../routes/myMethods');
 var cricbuzzURL = 'http://www.cricbuzz.com';
@@ -18,13 +19,36 @@ module.exports = {
 		var series = [];
 		series.push({'allurls' : []});
 		var data = {matches : [], urls : [], dates : []}
-		var d = new Date(), detailFetch = false;
+		var d = new Date(), detailetch = false;
 		
         async.series([
             function(callback){
+                var _ph, _page, _oo;
+                
+                phantom.create().then(instance => {
+                    _ph = instance;
+                    return _ph.createPage();
+                }).then(page => {
+                    _page = page;
+                    _page.open(cricbuzzURL + '/cricket-schedule/series', function(){
+                         _page.evaluate(function() {
+                            console.log('in evaluate');
+                            document.querySelector("#srs_category[3]\\.dom_id").click(function(){
+                                console.log("The paragraph was clicked.");
+                            });
+                        });
+                        
+                    });
+                });
+                
         		request(cricbuzzURL, function(error, response, html){
         		  if(!error){
         		    var $ = cheerio.load(html);
+        		    
+                    // $("#srs_category[3].dom_id").click(function(){
+                    //     alert("The paragraph was clicked.");
+                    // });
+
                     $('#seriesDropDown .cb-subnav-item').filter(function(){
                         var a = $(this);
                         console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@' ,a.attr('href'));
@@ -57,7 +81,7 @@ module.exports = {
                                         var month = monthNames.indexOf(dayStr.split(' ')[0]);
                                         var date = parseInt(dayStr.split(' ')[1]);
                                         if(month >= d.getMonth() && date >= d.getDate()){
-                                            console.log("Date ", date,', month ', month);
+                                            //console.log("Date ", date,', month ', month);
                                             var t = a.next().next().children().next().text().replace(/\s+/g, ' ');
                                             var gmt = t.substring(0, t.indexOf('GMT')).replace(':', '.');
                                             if(gmt.indexOf('AM') > -1){
@@ -74,7 +98,7 @@ module.exports = {
                                     }
                                 });
                                 
-                	            console.log(series[index].matches);
+                	            //console.log(series[index].matches);
                                 count++;
                 	            //creates job for first match in series
                 	            var t = series[index].matches[0].time.split(',');
@@ -100,9 +124,9 @@ module.exports = {
                         		
                     			queue.create('SERIES_SCORE', {
                     			      jobId: series[index].matches[0].url,
-                    			      index : index
+                    			      index : index -1
                     		        }).delay(timeInMilli).priority('high').save( function(err){
-                    		       if( !err ) console.log("Started Task for #####", series[index].matches[0].name);
+                    		       if( !err ) console.log("created job for #####", series[index].matches[0].name);
                     			});
                         		
 		                        matchesCounter = 0;
@@ -114,44 +138,29 @@ module.exports = {
                 }
             },
             function(callback){
-				mongodbjs.updateCollection({'series' : series}, callback, 'adminUpdate', 'SERIES');
-				done();
-            	prevCallback(null, 'six');
+				mongodbjs.findRecord({'series' : series}, callback, 'adminUpdate', 'SERIES');
             }
-        ]);
+        ],
+		function(err, results){
+			if(!err){
+			    if(results[2].length > 0){
+    			    for(var i = 0; i < series[0].allurls.length; i++){
+    		            if(results[2][0].allurls.indexOf(series[0].allurls[i]) < 0){
+    		                results[2][0].allurls.push(series[0].allurls[i]);
+    		                results[2].push(series[i+1]);
+    		            }
+    			    }
+			    }else{
+			        results[2] = series;
+			    }
+    			mongodbjs.updateCollection({'series' : results[2]}, prevCallback, 'adminUpdate', 'SERIES');
+    			done();
+            	//prevCallback(null, 'seven');
+			}
+        });
 	    
 	},
 	
-	matchTimeInMilli : function( url, date, t){
-		var urlCricbuzzIPL = url;
-		var timeStr = t + " at "+ date;
-		var date = parseInt(timeStr.substring(timeStr.indexOf(' at')+3).split(" ")[2]);
-		var match_time = parseInt(timeStr.substring(timeStr.indexOf(':')+1));
-		var am_pm = timeStr.indexOf("AM"); 
-		console.log("date : ", date,", match_time : ",match_time, ", am_pm : ", am_pm);
-
-		//get current time
-		var d = new Date();
-		var hrUTC = d.getUTCHours();
-		var minUTC = d.getUTCMinutes();
-		var hr = (hrUTC + 5 > 24) ? (hrUTC + 5 - 24) :  hrUTC + 5;
-		if(hrUTC + 5 > 24 || (hrUTC + 5 > 23 && minUTC + 30 > 60 )){
-			date = date - 1;
-		}
-		var min = minUTC + 30 ;
-
-		//calculate delay in miliseconds
-		var daysRemain= (date - d.getUTCDate());
-		if(am_pm == -1){
-			match_time = match_time + 12;
-		}
-		var hrRemain = (match_time - hr );
-		var minElapsed = -min;
-		var timeInMili = ((((daysRemain * 24) + hrRemain) * 60) + minElapsed) * 60 * 1000;
-		console.log("daysRemain : "+ daysRemain+", hrRemain : "+ hrRemain+", minElapsed : "+ minElapsed + ", timeInMili : "+ timeInMili);
-
-		return timeInMili;
-	},
 }
 
 //converts GMT to IST time

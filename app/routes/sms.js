@@ -47,11 +47,11 @@ module.exports = {
 				console.log("iplSMSJobs has length of ", results[0].length);
 				for(var i = 0; i < results[0].length; i++){		
 					if(parseInt(currOver) % (parseInt(results[0][i].subscription.cricSub.series[0].over)) === 0){
-						queue.create('IPL_SMS', {
-							msg : msg,
+						queue.create('SERIES_SMS', {
+							msg : "Series : " + results[0][i].subscription.cricSub.series[0].seriesName + ", Fixture : " + results[0][i].subscription.cricSub.series[0].name  + msg,
 							mob : results[0][i].mob
 						}).priority('critical').save(function(err){
-						         if( !err ) console.log("started job for sending SERIES_SMS for user ", i);
+						         if( !err ) console.log("started job for sending SERIES_SMS for user ", results[0][i].name);
 						});
 					}
 				}

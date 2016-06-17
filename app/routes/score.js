@@ -71,7 +71,7 @@ module.exports = {
              if(matchdata.teamBowling.name.replace(/ /g, '') === 'InningsBreak'){
              	done();
              	myMethods.seriesOvers[index].currOver = 1;
-             	secondInning = true;
+             	myMethods.seriesOvers[index].secondInning = true;
              	return;
              }
            $('.cb-min-inf').each(function(i, element){
@@ -105,7 +105,7 @@ module.exports = {
                 }
 				var full_score = JSON.stringify(matchdata);
 
-				msg = "IPL : "+ matchdata.teamBatting.name +" Vs "+ matchdata.teamBowling.name+", ";
+				msg = matchdata.teamBatting.name +" Vs "+ matchdata.teamBowling.name+", ";
 				msg = msg + ((myMethods.seriesOvers[index].matchOver) ? matchEndedText : "");
 				msg = msg + ((matchdata.player1.name == "") ? "" : ("Batting : "+matchdata.player1.name +" [ Runs : "+ matchdata.player1.runs+", Balls : " +matchdata.player1.balls+" ] "));
 				msg = msg + ((matchdata.player2.name == "") ? "" : ("& "+ matchdata.player2.name +" [ Runs : "+ matchdata.player2.runs+", Balls : "+matchdata.player2.balls+" ], "));
@@ -127,7 +127,7 @@ module.exports = {
 					console.log("Current Match Over set...... ",  myMethods.seriesOvers[index].currOver);
 				}
                 var _over = parseInt(battinTeam.substring(battinTeam.indexOf('(')+1, battinTeam.indexOf('Ovs)')));
-                if(secondInning){
+                if(	myMethods.seriesOvers[index].secondInning){
   	               battinTeam = matchdata.teamBowling.name;
                 	_over =  parseInt(battinTeam.substring(battinTeam.indexOf('(')+1, battinTeam.indexOf('Ovs)')));
                 }
@@ -144,10 +144,9 @@ module.exports = {
             	}
 		      if( myMethods.seriesOvers[index].matchOver){
 		          console.log("score sent!");
-	//	          clearInterval(crawlInterval);
-		           myMethods.seriesOvers[index].currOver = 1;
+		          myMethods.seriesOvers[index].currOver = 0;
 		           myMethods.seriesOvers[index].matchOver = false;
-		          secondInning = false;
+		          myMethods.seriesOvers[index].secondInning = false;
 		  //        var timeInMilli = myMethods.matchTimeInMilli( myMethods.seriesOvers[index].currMatch.ipl.url[1], myMethods.seriesOvers[index].currMatch.ipl.date[1],  myMethods.seriesOvers[index].currMatch.ipl.name[1]);
 				// queue.create('SERIES_SCORE', {
 				//       jobId:  myMethods.seriesOvers[index].currMatch.ipl.url[1]
