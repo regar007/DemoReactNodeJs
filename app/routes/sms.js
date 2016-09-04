@@ -3,7 +3,7 @@ var mongodb = require('../routes/mongodb.js');
 var kue = require('kue'),
 queue = kue.createQueue();
 
-queue.process('IPL_SMS', function(job, done){
+queue.process('SERIES_SMS', function(job, done){
     sendByPlivo(job.data.mob, job.data.msg, done);
 });
 
@@ -36,7 +36,7 @@ var sendByPlivo = function(mob, msg, done){
 module.exports = {
 
 	iplSMSJobs : function(msg, url, index, currOver){
-		console.log("in iplSMSJobs : ", url);		
+		console.log("in SMSJobs : ", url);		
 		async.series([
 			function(callback){
 				mongodb.findRecord(url, callback, index, 'sms');
@@ -51,7 +51,7 @@ module.exports = {
 							msg : "Series : " + results[0][i].subscription.cricSub.series[0].seriesName + ", Fixture : " + results[0][i].subscription.cricSub.series[0].name  + msg,
 							mob : results[0][i].mob
 						}).priority('critical').save(function(err){
-						         if( !err ) console.log("started job for sending SERIES_SMS for user ", results[0][i].name);
+						         if( !err ) console.log("started job for sending SERIES_SMS for user ", i);
 						});
 					}
 				}

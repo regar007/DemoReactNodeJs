@@ -164,20 +164,31 @@ html
 										.attr('role', 'menu')
 										.appendTo(div);
 									}
-									$.each(responseText, function(i)
-									{
-										if(i > 10){
-											return;
-										}
+									if(responseText.length == 0){
 									    var li = $('<li/>')
 									        .addClass('fixtureli')
 									        .appendTo(ul);
 									    var aa = $('<a/>')
-									    	.attr('name', responseText[i].url)
-									    	.attr('title', responseText[i].time)
-									        .text(responseText[i].name)
+									        .text("No more matches!")
 									        .appendTo(li);
-									});
+									}
+									else
+									{
+										$.each(responseText, function(i)
+										{
+											if(i > 10){
+												return;
+											}
+										    var li = $('<li/>')
+										        .addClass('fixtureli')
+										        .appendTo(ul);
+										    var aa = $('<a/>')
+										    	.attr('name', responseText[i].url)
+										    	.attr('title', responseText[i].time)
+										        .text(responseText[i].name)
+										        .appendTo(li);
+										});
+									}
 								}
 							});
 						});

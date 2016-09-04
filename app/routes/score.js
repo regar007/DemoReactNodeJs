@@ -7,7 +7,7 @@ var myMethods = require('../routes/myMethods');
 var matchType = ['odi'];
 var mongodb = require('../routes/mongodb');
 var currOverSet = false;
-var secondInning = false; //intial false
+var secondInning = true; //intial false
 
 module.exports = {
 

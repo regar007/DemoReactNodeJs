@@ -18,7 +18,7 @@ var init = false;
  	  	var users = db.collection('users'); 
 // 	  	users.remove();
 	  	var admin = db.collection('admin'); 
-//	  	admin.remove();
+	  	admin.remove();
  	  }
  	});
  	init = !init;

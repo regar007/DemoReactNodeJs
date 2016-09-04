@@ -101,13 +101,15 @@ module.exports = {
                 	            //console.log(series[index].matches);
                                 count++;
                 	            //creates job for first match in series
+                	            if(series[index].matches.length == 0)
+                    	            return;  // return if ALL matches are over
                 	            var t = series[index].matches[0].time.split(',');
                 	            var timeInMilli = myMethods.matchTimeInMilli(series[index].matches[0].url,t[0], t[t.length-1]);
                                 
                         		queue.process('SERIES_SCORE', function(job, done){
                         			score.sendIPLScore(job.data.jobId, null, done, queue, job.data.index);
                         			console.log("--------------------------------", myMethods.seriesOvers[0].over, " matchOver : ",myMethods.seriesOvers[0].matchOver);
-                        			if(myMethods.seriesOvers[job.data.index].matchOver){
+                        			if(myMethods.seriesOvers.length >= job.data.index && myMethods.seriesOvers[job.data.index].matchOver){
                         				console.log("sent scores for the IPL Match################ ", job.data.jobId);
                         	//			admin.currOver = 1;
                         				myMethods.seriesOvers[0].matchOver = false;
